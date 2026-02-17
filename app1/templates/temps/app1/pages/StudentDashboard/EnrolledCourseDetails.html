@@ -1,0 +1,62 @@
+{% extends 'temps/app1/StudentDashboard.html' %}
+
+{% block main_section %}
+<div class="ml-10 pt-10">
+    <h1 class="text-white font-bold text-4xl">Details</h1>
+    <div class="bg-slate-800 text-white w-fit p-4 rounded-xl my-6">
+        <ul class="grid grid-cols-2 gap-2 [&>li]:bg-slate-900 [&>li]:p-2 [&>li]:rounded-xl">
+            <li>Course Code: {{course_by_section.course.course_code}}</li>
+            <li>Course Name: {{course_by_section.course.name}}</li>
+            <li>Course Nmbr: {{course_by_section.course_code_by_section}}</li>
+            <li>Credit Hours: {{course_by_section.course.credit_hours}}</li>
+            <li>Instructor Name: {{assignment.instructor.user.get_full_name}}</li>
+            <li>Section: {{course_by_section.section.section_id}}</li>
+        </ul>
+    </div>
+        <h1 class="text-white font-bold text-4xl">Result</h1>
+    {% if marks %}
+    <div class="overflow-hidden rounded-xl border border-slate-700 bg-slate-800 shadow-lg max-w-fit">
+        <ul>
+            <li>{{Grade}}</li>
+        </ul>
+    </div>
+    <div class="overflow-hidden rounded-xl border border-slate-700 bg-slate-800 shadow-lg max-w-fit mt-6">
+        <table class="text-white rounded-3xl max-w-fit">
+            <thead class="bg-slate-900 ">
+                <tr class="[&>th]:px-6 [&>th]:py-4">
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Total Marks</th>
+                    <th>Obtained Marks</th>
+                </tr>
+            </thead>
+            <tbody class="bg-slate-800">
+                {% for mark in marks %}
+                <tr class="[&>td]:px-6 [&>td]:py-4">
+                    <td>{{forloop.counter}}</td>
+                    <td>{{mark.title}}</td>
+                    <td>{{mark.category}}</td>
+                    <td>{{mark.total_marks}}</td>
+                    <td>{{mark.obtained_marks}}</td>
+                </tr>
+                {% endfor %}
+                <tr class="[&>td]:px-6 [&>td]:py-4 [&>td]:font-bold bg-slate-900 ">
+                    <td></td>
+                    {% if enrollment.is_cleared %}
+                    <td>Status: Pass</td>
+                    {% else %}
+                    <td>Status: Fail</td>
+                    {% endif %}
+                    <td>Percentage%: {{enrollment.percentage}}</td>
+                    <td>Grade: {{enrollment.grade}}</td>
+                    <td>Marks: {{enrollment.course_obtained_marks}}/{{enrollment.course_total_marks}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <h1 class="text-white text-xl">This feature hasn't been created yet..</h1>
+    {% endif%}
+</div>
+{% endblock %}

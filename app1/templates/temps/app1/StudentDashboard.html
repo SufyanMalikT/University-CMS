@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="min-w-screen min-h-screen bg-slate-950">
+        {% include 'temps/app1/components/StudentDashboard/navbar.html'%}
+        {% block navbar %}{% endblock %}
+
+        {% include 'temps/app1/components/StudentDashboard/sidebar.html'%}
+        {% block sidebar %}{% endblock %}
+
+        <section class="mt-16 ml-64">
+            {% block main_section %} {% endblock %}
+        </section>
+    </div>
+{% endblock %}

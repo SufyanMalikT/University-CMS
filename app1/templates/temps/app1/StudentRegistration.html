@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="min-w-screen min-h-screen flex flex-col items-center justify-center bg-slate-950">
+        {% if messages %}
+        {% for message in messages %}
+            <div class="alert {{ message.tags }}">
+            {{ message }}
+            </div>
+        {% endfor %}
+        {% endif %}
+
+
+        <form  method="POST" class="grid relative grid-cols-2 text-white gap-4 py-20 items-center justify-center [&>p]:flex [&>p]:flex-col  [&>p]:h-full bg-slate-900 py-12 px-8 rounded-2xl">
+            <h1 class="text-3xl text-white font-bold absolute top-4 left-20 ">Student Registration Form</h1>
+            {% csrf_token %}
+            {{ form.as_p}}
+            <button class=" absolute left-115 bottom-8 bg-emerald-300 w-fit px-4 py-1 rounded-2xl cursor-pointer transition hover:bg-orange-300 hover:text-white" type="submit">Register</button>
+        </form>
+    </div>
+{% endblock %}

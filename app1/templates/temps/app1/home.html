@@ -1,0 +1,12 @@
+{% include 'base.html' %}
+
+{% block content%}
+    {% for student in students %}
+        <table>
+            <tr>
+                <td>{{student.name}}</td>
+                <td>{{student.age}}</td>
+            </tr>
+        </table>
+    {% endfor %}
+{% endblock %}

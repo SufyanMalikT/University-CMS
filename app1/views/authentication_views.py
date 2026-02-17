@@ -1,0 +1,83 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from ..forms import StudentRegistrationForm, InstructorRegistrationForm
+from django.contrib import messages
+from ..services.StudentServices import StudentRegistration
+from ..services.InstructorServices import InstructorRegistration
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import login, logout, authenticate
+from ..services.AdminServices import admin_only
+# Create your views here.
+
+
+def home_view(request):
+    students = [
+        {
+            'name':'Sufyan',
+            'age':19
+        },
+        {
+            'name':'Fareed',
+            'age':21
+        }
+    ]
+    return render(request, 'temps/app1/home.html', {'students':students} )
+
+@login_required
+@admin_only
+def student_registration_view(request):
+    if request.method == 'POST':
+        form = StudentRegistrationForm(request.POST)
+
+        if form.is_valid():
+            StudentRegistration(form)
+            messages.success(request, "Registration successful!")
+            return redirect('home')
+
+        else:
+            messages.error(request, "Please correct the errors below.")
+
+    else:
+        form = StudentRegistrationForm()
+
+    return render(
+        request,
+        'temps/app1/StudentRegistration.html',
+        {'form': form}
+    )
+
+@login_required
+@admin_only
+def instructor_registration_view(request):
+    if request.method == 'POST':
+        form = InstructorRegistrationForm(request.POST)
+        if form.is_valid():
+            InstructorRegistration(form)
+            messages.success(request, "Registeration successful!")
+            return redirect('home')
+        
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = InstructorRegistrationForm()
+    return render(request, 'temps/app1/InstructorRegistration.html',{'form':form})
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user:
+            login(request, user)
+            if hasattr(user,'student_profile'):
+                return redirect('student_dashboard')
+        else:
+            return redirect('login')
+    return render(request,'temps/app1/login.html',{})
+
+@login_required
+def logout_view(request):
+    logout(request)
+    return redirect('home')
+

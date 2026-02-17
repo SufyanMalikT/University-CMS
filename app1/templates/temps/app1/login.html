@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="min-w-screen min-h-screen flex flex-col items-center justify-center bg-slate-950">
+        <form  method="POST" class="text-white bg-slate-900 flex flex-col rounded-2xl">
+            <h1 class="text-4xl font-bold flex flex-col pt-8 self-center">Login</h1>
+            {% csrf_token %}
+            <p class="flex flex-col py-8 px-8">
+                <label for="username" class='ml-2'>Username</label>
+                <input type="text" name="username" placeholder="Enter a username" class='border border-gray-300 shadow py-1 px-2 w-md rounded-md'>
+            </p>
+            <p class="flex flex-col py-8 px-8">
+                <label for="password" class='ml-2'>Password</label>
+                <input type="password" name="password" placeholder="Enter a password" class='border border-gray-300 shadow py-1 px-2 w-md rounded-md'>
+            </p>
+            <button type="submit" class="self-center bg-emerald-500 mb-8 py-1 px-4 rounded-3xl shadow-emerald-400 cursor-pointer hover:shadow-sm">Login</button>
+        </form>
+    </div>
+{% endblock %}

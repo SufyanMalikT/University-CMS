@@ -1,0 +1,30 @@
+{% block sidebar %}
+    <aside class="flex flex-col bg-slate-950 justify-center text-white fixed top-0 left-0 min-h-screen w-64 mt-16 border border-y-0 border-l-0 border-gray-700">
+        <div class="flex flex-col space-y-2">
+            <div id="sb-enrollment-btn" class="bg-slate-800 font-bold rounded-md pl-12 mx-4 py-2 cursor-pointer">Enrollment</div>
+            <div id="enrollment-submenu" class="hidden flex flex-col bg-slate-600 rounded-md mx-4 justify-between space-y-4 py-2">
+                <a class="m-1 py-2 pl-2 bg-slate-900 rounded-md" href="{% url 'add_classes' %}"> Add Classes</a>
+                <a class="m-1 py-2 pl-2 bg-slate-900 rounded-md" href="{% url 'cart' %}"> Your Cart</a>
+                <a class="m-1 py-2 pl-2 bg-slate-900 rounded-md" href="{% url 'review_classes_by_semester' %}">Review Classes</a>
+                <a class="m-1 py-2 pl-2 bg-slate-900 rounded-md">Drop Classes</a>
+            </div>
+        </div>
+    </aside>
+
+    <script>
+        const sb_enrollment_btn = document.querySelector('#sb-enrollment-btn')
+
+        let enrollment_submenu_visible = false
+        sb_enrollment_btn.addEventListener('click',() => {
+            if(!enrollment_submenu_visible){
+                sb_enrollment_btn.nextElementSibling.classList.remove('hidden')
+                sb_enrollment_btn.nextElementSibling.classList.add('flex')
+                enrollment_submenu_visible = true
+            }else{
+                sb_enrollment_btn.nextElementSibling.classList.remove('flex')
+                sb_enrollment_btn.nextElementSibling.classList.add('hidden')
+                enrollment_submenu_visible = false
+            }
+        })
+    </script>
+{% endblock %}
