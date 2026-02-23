@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @page { size: a4 portrait; margin: 1cm; }
+        body { font-family: Helvetica, Arial, sans-serif; color: #334155; }
+        .header { text-align: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+        .voucher-info { margin: 20px 0; width: 100%; }
+        .table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .table th { background-color: #f8fafc; padding: 10px; border: 1px solid #e2e8f0; text-align: left; }
+        .table td { padding: 10px; border: 1px solid #e2e8f0; }
+        .total-section { margin-top: 30px; text-align: right; }
+        .footer { position: fixed; bottom: 0; font-size: 10px; text-align: center; color: #94a3b8; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>UNIVERSITY FEE VOUCHER</h1>
+        <p>Semester: {{ voucher.semester.get_sem }}</p>
+    </div>
+
+    <table class="voucher-info">
+        <tr>
+            <td><strong>Student:</strong> {{ voucher.student.user.get_full_name }}</td>
+            <td style="text-align: right;"><strong>Voucher ID:</strong> #{{ voucher.id }}</td>
+        </tr>
+        <tr>
+            <td><strong>Issue Date:</strong> {{ today|date:"M d, Y" }}</td>
+            <td style="text-align: right;"><strong>Due Date:</strong> {{ voucher.due_date|date:"M d, Y" }}</td>
+        </tr>
+    </table>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Course Description</th>
+                <th>Credits</th>
+                <th style="text-align: right;">Fee</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in breakdown.items %}
+            <tr>
+                <td>{{ item.course_code }} - {{ item.course_name }}</td>
+                <td>{{ item.credits }}</td>
+                <td style="text-align: right;">${{ item.fee|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td colspan="2">Registration Fee</td>
+                <td style="text-align: right;">${{ breakdown.fixed_fees.registration|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td colspan="2">Library & Exam Fees</td>
+                <td style="text-align: right;">${{ breakdown.fixed_fees.library_fee|add:breakdown.fixed_fees.exam_fee|floatformat:2 }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="total-section">
+        <h3>Grand Total: ${{ voucher.breakdown.grand_total|floatformat:2 }}</h3>
+        <p style="color: red; font-size: 12px;">Please pay before the due date to avoid enrollment cancellation.</p>
+    </div>
+
+    <div class="footer">
+        Generated automatically by the University Management System on {{ today }}
+    </div>
+</body>
+</html>

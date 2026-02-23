@@ -1,12 +1,12 @@
 {% block sidebar %}
-    <aside class="flex flex-col bg-slate-950 justify-center text-white fixed top-0 left-0 min-h-screen w-64 mt-16 border border-y-0 border-l-0 border-gray-700">
-        <div class="flex flex-col space-y-2">
-            <div id="sb-enrollment-btn" class="bg-slate-800 font-bold rounded-md pl-12 mx-4 py-2 cursor-pointer">Enrollment</div>
-            <div id="enrollment-submenu" class="hidden flex flex-col bg-slate-600 rounded-md mx-4 justify-between space-y-4 py-2">
-                <a class="m-1 py-2 pl-2 bg-slate-900 rounded-md" href="{% url 'add_classes' %}"> Add Classes</a>
-                <a class="m-1 py-2 pl-2 bg-slate-900 rounded-md" href="{% url 'cart' %}"> Your Cart</a>
-                <a class="m-1 py-2 pl-2 bg-slate-900 rounded-md" href="{% url 'review_classes_by_semester' %}">Review Classes</a>
-                <a class="m-1 py-2 pl-2 bg-slate-900 rounded-md">Drop Classes</a>
+    <aside class=" hidden md:flex flex-col bg-white justify-center fixed top-0 left-0 min-h-screen w-64">
+        <div class="flex flex-col space-y-2 bg-gray-300 mx-4">
+            <div id="sb-enrollment-btn" class="font-bold rounded-md pl-12 py-4 cursor-pointer transition hover:shadow-xl">Enrollment</div>
+            <div id="enrollment-submenu" class="hidden flex flex-col bg-gray-500 shadow-xl rounded-md mx-4 justify-between space-y-4 py-2 my-2">
+                <a class="m-1 py-2 pl-2  bg-gray-300 inset-shadow-sm rounded-md hover:bg-gray-400" href="{% url 'add_classes' %}"> Add Classes</a>
+                <a class="m-1 py-2 pl-2  bg-gray-300 inset-shadow-sm rounded-md hover:bg-gray-400" href="{% url 'cart' %}"> Your Cart</a>
+                <a class="m-1 py-2 pl-2   bg-gray-300 inset-shadow-sm rounded-md hover:bg-gray-400" href="{% url 'review_classes_by_semester' %}">Review Classes</a>
+                <a class="m-1 py-2 pl-2   bg-gray-300 inset-shadow-sm rounded-md hover:bg-gray-400">Drop Classes</a>
             </div>
         </div>
     </aside>

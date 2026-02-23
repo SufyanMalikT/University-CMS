@@ -153,6 +153,8 @@ class Semester(models.Model):
 
     add_course_deadline = models.DateField(null=True, blank=True)
     drop_course_deadline = models.DateField(null=True, blank=True)
+    fee_payment_deadline = models.DateField(null=True, blank=True)
+    voucher_validity_days = models.PositiveSmallIntegerField(default=7)
     max_credit_hours = models.PositiveSmallIntegerField(null=True, blank=True)
 
     @property
@@ -181,6 +183,13 @@ class Semester(models.Model):
     def latest_semester(cls):
         return cls.objects.latest('end_date')
     
+    @property
+    def is_past_deadline(self):
+        if self.fee_payment_deadline:
+            return timezone.now().date() > self.fee_payment_deadline
+        return False
+
+        
     def clean(self):
         super().clean()
 
@@ -489,7 +498,7 @@ class FeeVoucher(models.Model):
     def clean(self):
         super().clean()
 
-        if self.due_date and self.due_date < timezone.now().today():
+        if self.due_date and self.due_date < timezone.now().date():
             raise ValidationError("Due date cannot be in the past")
         
     def save(self, *args, **kwargs):
@@ -498,6 +507,7 @@ class FeeVoucher(models.Model):
 
         self.full_clean()
         super().save(*args, **kwargs)
+
     @property
     def total_amount(self):
         return self.amount + self.fine_amount
