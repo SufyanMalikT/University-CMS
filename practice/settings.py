@@ -25,8 +25,7 @@ SECRET_KEY = 'django-insecure-20@pfxfcazd3ks+tl0ck8yn2j+wu98%t++e#x&cdf)sb#fc-lu
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
 # Application definition
 
@@ -119,5 +118,6 @@ STATIC_URL = 'static/'
 
 AUTH_USER_MODEL = 'app1.CustomUser'
 
-STRIPE_PUBLIC_KEY="pk_test_51T3elB2KNnJdEhIcRALu0OkOnAqWZzkuqKHblVYN8tVVCzMV8jNV3vr3F6u732DrD8VxKPg29Of7tDVF4VSVMR3G00LpnSmCjL"
-STRIPE_SECRET_KEY="sk_test_51T3elB2KNnJdEhIcHkxOpMFGLve2fZg4P50VPMNzUOPuBMYTcJNck354h4zWvxI61teK5qMSKEBKokARKpLgrveU00bVP3PIIj"
+# STRIPE_PUBLIC_KEY="pk_test_51T3A6lRBMKc7YNWe1xw7qA2JpVXSF1dpGaGP1YODjWxrs1gK4Raq0p7WAEF3a83HGbgLbyPezEp2kvDkEkjc3Vgf00ZCarJwoQ"
+STRIPE_SECRET_KEY="sk_test_51T3A6lRBMKc7YNWetPXUIIXsmJHSe0QtFcYqOenR4tSzt2AD9bxX3eyh5Hr5XE0ZcYXMCIzflgkchdiMGucK2wrZ00Hbq003UV"
+STRIPE_WEBHOOK_KEY="whsec_290ab533ba9ec0257a276809213a19d51387dce25e0de1e1689a153bec2e58a1"

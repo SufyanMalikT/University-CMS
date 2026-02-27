@@ -2,45 +2,60 @@
 
 {% block main_section %}
 
-    <h1 class="text-white ml-20 pt-12 mb-4 text-3xl font-bold">Your enrolled courses for {{semester.get_sem}}</h1>
-    <div class=" overflow-hidden rounded-xl border border-slate-700 bg-slate-800 shadow-lg">
-    <table class="min-w-full text-sm text-slate-200">
-        <thead  class="bg-slate-900 text-slate-300">
-            <tr class="[&>th]:px-6 [&>th]:py-4 text-left font-semibold uppercase tracking-wider">
-                <th>#</th>
-                <th>Course Name</th>
-                <th>Course Code</th>
-                <th>Course Nmbr</th>
-                <th>Section</th>
-                <th>Instructor</th>
-                <th>Cleared?</th>
-                <th>See Details</th>
-            </tr>
-        </thead>
-
-        <tbody class="divide-y divide-slate-700">
-            {% for enrollment in enrollments %}
-            <tr class="transition hover:bg-slate-700/60 [&>td]:px-6 [&>td]:py-4">
-                <td>{{forloop.counter}}</td>
-                <td>{{enrollment.course_by_section.course.name}}</td>
-                <td>{{enrollment.course_by_section.course.course_code}}</td>
-                <td>{{enrollment.course_by_section.course_code_by_section}}</td>
-                <td>{{enrollment.course_by_section.section.section_id}}</td>
-                <td>{{enrollment.assignment.instructor.user.get_full_name}}</td>
-                {% if enrollment.is_cleared %}
-                    <td>Yes</td>
-                {% else %}
-                    <td>No</td>
-                {% endif %}
-                <td>
-                    {% if semester.can_drop_course %}
-                    <a href="{% url 'drop_course' enrollment_id=enrollment.id %}" class="underline cursor-pointer transition hover:text-red-500">Drop Course</a>
-                    {% endif %}
-                    <a href="{% url 'enrolled_course_details' semester_id=semester.id course_code_by_section=enrollment.course_by_section.course_code_by_section %}" class="underline cursor-pointer transition hover:text-blue-500">Details</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>Academic Transcript</h2>
+            <p class="text-muted">Student Name: {{ request.user.get_full_name }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="card bg-primary text-white p-3">
+                <h5 class="mb-0">Current CGPA</h5>
+                <h2 class="display-6 fw-bold">{{ gpa }}</h2>
+            </div>
+        </div>
     </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Course Code</th>
+                        <th>Course Name</th>
+                        <th>Marks</th>
+                        <th>Grade</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for res in results %}
+                    <tr>
+                        <td>{{ res.course.code }}</td>
+                        <td>{{ res.course.name }}</td>
+                        <td>{{ res.marks_obtained }} / {{ res.total_marks }}</td>
+                        <td><strong>{{ res.grade }}</strong></td>
+                        <td>
+                            {% if res.is_passed %}
+                                <span class="badge bg-success">Pass</span>
+                            {% else %}
+                                <span class="badge bg-danger">Fail</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4">No results published yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-4 no-print">
+        <button onclick="window.print()" class="btn btn-outline-dark">
+            Download PDF Transcript
+        </button>
+    </div>
+</div>
 {% endblock %}

@@ -13,6 +13,9 @@ from ..permissions import student_only, instructor_only
 from django.utils import timezone
 from ..utils.FeeVoucher import render_to_pdf
 import stripe 
+from django.conf import settings
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 @login_required
 @student_only
@@ -119,7 +122,7 @@ def add_to_cart_view(request, course_by_section_id):
 @login_required
 def cart_page_view(request):
     cart_total = calculate_cart_total(request.user.student_profile)
-    unpaid_voucher = FeeVoucher.objects.filter(student=request.user.student_profile).first()
+    unpaid_voucher = FeeVoucher.objects.filter(student=request.user.student_profile,status='unpaid').first()
     if request.method == "POST":
         try:
             voucher = generate_fee_voucher(request.user.student_profile)
@@ -204,9 +207,9 @@ def create_checkout_session(request, voucher_id):
                 'currency': 'usd',
                 'product_data': {
                     'name': f"University Fee Voucher #{voucher.id}",
-                    'description': f"Semester: {voucher.semester.name}",
+                    'description': f"Semester: {voucher.semester.get_sem}",
                 },
-                'unit_amount': voucher.amount, # Already in cents
+                'unit_amount': int(voucher.amount), # Already in cents
             },
             'quantity': 1,
         }],
@@ -215,8 +218,13 @@ def create_checkout_session(request, voucher_id):
         metadata={
             "voucher_id": voucher.id
         },
-        success_url=request.build_absolute_uri('/payment/success/'),
+        success_url=request.build_absolute_uri('payment/success/'),
         cancel_url=request.build_absolute_uri('/cart/'),
     )
 
     return redirect(checkout_session.url, code=303)
+
+
+def success_payment_page_view(request):
+    messages.success(request, "Payment Successful")
+    return redirect('cart')

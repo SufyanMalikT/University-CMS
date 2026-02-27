@@ -18,35 +18,6 @@ def StudentRegistration(valid_form):
     return student
 
 
-@transaction.atomic
-def enroll_student(student, course_code_by_section):
-    course_by_section = get_object_or_404(CourseBySection, course_code_by_section=course_code_by_section)
-    semester = Semester.latest_semester()
-    if not semester.can_add_course:
-        raise ValidationError("Cannot enroll in this class at this time")
-    
-    if course_by_section.no_of_enrolled_students >= course_by_section.section.limit_of_students:
-        raise ValidationError("No seats available for this class")
-    
-    
-    obj, created = Enrollment.objects.get_or_create(course_by_section=course_by_section, semester=semester, student=student)
-
-    if not created:
-        raise ValidationError("You are already enrolled in this class")
-
-    course_by_section.no_of_enrolled_students += 1
-    course_by_section.save()
-
-@transaction.atomic
-def unenroll_student(enrollment_id):
-    enrollment = get_object_or_404(Enrollment,id=enrollment_id)
-    if not enrollment.semester.can_drop_course:
-        raise ValidationError("Cannot drop this at this time") 
-    
-    enrollment.course_by_section.no_of_enrolled_students -= 1
-    enrollment.save()
-    enrollment.delete()
-
 
 @transaction.atomic 
 def add_to_cart(student, section_id):
@@ -172,3 +143,43 @@ def generate_fee_voucher(student):
 def delete_unpaid_fee_voucher(student, voucher_id):
     unpaid_voucher = get_object_or_404(FeeVoucher, student=student, id=voucher_id, status='unpaid')
     unpaid_voucher.delete()
+
+@transaction.atomic 
+def fulfill_order(voucher_id):
+    voucher = get_object_or_404(FeeVoucher,id=voucher_id)
+    voucher.status = 'paid'
+    voucher.save()
+
+    voucher_items = voucher.voucher_items.all()
+
+    for voucher_item in voucher_items:
+        enroll_student(voucher.student, voucher_item.course_by_section.course_code_by_section)
+
+@transaction.atomic
+def enroll_student(student, course_code_by_section):
+    course_by_section = get_object_or_404(CourseBySection, course_code_by_section=course_code_by_section)
+    semester = Semester.latest_semester()
+    if not semester.can_add_course:
+        raise ValidationError("Cannot enroll in this class at this time")
+    
+    if course_by_section.no_of_enrolled_students >= course_by_section.section.limit_of_students:
+        raise ValidationError("No seats available for this class")
+    
+    
+    obj, created = Enrollment.objects.get_or_create(course_by_section=course_by_section, semester=semester, student=student)
+
+    if not created:
+        raise ValidationError("You are already enrolled in this class")
+
+    course_by_section.no_of_enrolled_students += 1
+    course_by_section.save()
+
+@transaction.atomic
+def unenroll_student(enrollment_id):
+    enrollment = get_object_or_404(Enrollment,id=enrollment_id)
+    if not enrollment.semester.can_drop_course:
+        raise ValidationError("Cannot drop this at this time") 
+    
+    enrollment.course_by_section.no_of_enrolled_students -= 1
+    enrollment.save()
+    enrollment.delete()
