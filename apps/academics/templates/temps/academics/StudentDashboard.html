@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="min-w-screen min-h-screen bg-gray-300">
+        {% include 'temps/academics/components/StudentDashboard/navbar.html'%}
+        {% block navbar %}{% endblock %}
+
+        {% include 'temps/academics/components/StudentDashboard/sidebar.html' with page_name=page_name%}
+        {% block sidebar %}{% endblock %}
+
+        <section class="pt-16 md:ml-74 md:pt-24 md:p-2 pr-0 max-w-full">
+            <div class="text-black bg-white md:rounded-2xl shadow-xl p-4 py-8 min-h-full max-w-fit overflow-x-auto">
+                {% block main_section %} {% endblock %}
+            </div>
+        </section>
+    </div>
+    <script>
+        const sb_btn = document.querySelector('#sb-menu-btn')
+        const sidebar = document.querySelector('#sidebar')
+        const sb_close_btn = document.querySelector('#close-sb-btn')
+        sb_btn.addEventListener('click',()=>{
+            sidebar.classList.remove('hidden')
+        })
+        sb_close_btn.addEventListener('click', () => {
+            sidebar.classList.add('hidden')
+        })
+    </script>
+{% endblock %}

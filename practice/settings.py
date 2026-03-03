@@ -36,7 +36,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'app1'
+    'apps.academics',
+    'apps.accounts',
+    'apps.finance'
 ]
 
 MIDDLEWARE = [
@@ -114,9 +116,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-AUTH_USER_MODEL = 'app1.CustomUser'
+AUTH_USER_MODEL = 'accounts.CustomUser'
+
 
 # STRIPE_PUBLIC_KEY="pk_test_51T3A6lRBMKc7YNWe1xw7qA2JpVXSF1dpGaGP1YODjWxrs1gK4Raq0p7WAEF3a83HGbgLbyPezEp2kvDkEkjc3Vgf00ZCarJwoQ"
 STRIPE_SECRET_KEY="sk_test_51T3A6lRBMKc7YNWetPXUIIXsmJHSe0QtFcYqOenR4tSzt2AD9bxX3eyh5Hr5XE0ZcYXMCIzflgkchdiMGucK2wrZ00Hbq003UV"

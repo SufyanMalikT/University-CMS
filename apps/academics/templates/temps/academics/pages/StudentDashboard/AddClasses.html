@@ -1,0 +1,46 @@
+{% extends 'temps/academics/StudentDashboard.html'%}
+
+{% block main_section %}
+    {% if messages %}
+    {% include 'temps/app1/components/StudentDashboard/messagebanner.html' %}
+    {% endif %}
+        <div class="flex flex-row justify-between pl-12 pb-20">
+            <h1 class="text-4xl font-bold"> Add classes to cart</h1>
+        </div>
+        <form method="POST" class="py-4">
+            {% csrf_token %}
+            <input type="text" name="course_search" placeholder="Search by course code by section" class="bg-gray-100 py-1 px-4 text-gray-700 w-sm px-2 inset-shadow-sm rounded-full" >
+            <button type="submit" class="text-white bg-gray-400 py-1 px-4 rounded-2xl cursor-pointer hover:bg-green-500">Search</button>
+        </form>
+        <div class = 'text-black bg-gray-100 shadow-xl rounded-2xl w-fit mx-12 overflow-hidden'>
+            {% if course and course_assignment_for_current_sem %}
+                <table>
+                    <tr class=" bg-gray-300 [&>th]:px-2 [&>th]:py-2">
+                        <th>Course Code</th>
+                        <th>Course Name</th>
+                        <th>Section</th>
+                        <th>Course Instructor</th>
+                        <th>Credit Hours</th>
+                        <th>Actions</th>
+                    </tr>
+                    <tr class="[&>td]:px-2 [&>td]:py-2">
+                        <td>{{course.course.course_code}}</td>
+                        <td>{{course.course.name}}</td>
+                        <td>{{course.section.section_id}}</td>
+                        <td>{{course_assignment_for_current_sem.instructor.user.first_name}} {{course_assignment_for_current_sem.instructor.user.last_name}}</td>
+                        <td>{{course.course.credit_hours}}</td>
+                        <td>
+                            <a href="{% url 'add_to_cart' course_by_section_id=course.course_code_by_section %}" class="cursor-pointer underline transition hover:text-blue-500">Add to cart</a>
+                            <a href="{% url 'course_details' course_code_by_section=course.course_code_by_section %}" class="cursor-pointer underline transition hover:text-blue-500">Details</a>
+                        </td>
+                        
+                        
+                    </tr>
+                </table>
+            {% elif not course_assignment_for_current_sem and course %}
+                <h1 class="bg-none text-black rounded-md py-1 px-2">The course you've search has not yet been assigned to a instructor</h1>
+            {% else %}
+                <div class="bg-none text-black rounded-md py-1 px-2">Search a class by the provided course codes to enroll in them</div>
+            {% endif %}
+        </div>
+{% endblock %}

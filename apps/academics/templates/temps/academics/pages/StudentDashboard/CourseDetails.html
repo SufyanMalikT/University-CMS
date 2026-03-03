@@ -1,0 +1,41 @@
+{% extends 'temps/academics/StudentDashboard.html' %}
+
+{% block main_section %}
+
+
+<div>
+    <h1 class=" text-3xl font-bold ml-12">Class Details</h1>
+    <hr class="my-4 text-gray-400">
+    <ul class="shadow-xl bg-gray-100 font-bold grid grid-cols-2 gap-6 w-fit space-x-12 ml-10  py-4 px-4 rounded-md"> 
+        <li>Course Code: {{course.course.course_code}}</li>
+        <li>Course Name: {{course.course.name}}</li>
+        <li>Credit Hours: {{course.course.credit_hours}}</li>
+    </ul>
+    <hr class="my-4 text-gray-400">
+    <ul class="shadow-xl bg-gray-100 font-bold grid grid-cols-2 gap-6 w-fit space-x-12 ml-10  py-4 px-4 rounded-md">
+        <li>Section: {{course.section.section_id}}</li>
+        <li>Department: {{course.section.department.name}}</li>
+    {% if assignment %}
+    </ul>
+    <hr class="my-4 text-gray-400">
+    <ul class="shadow-xl bg-gray-100 font-bold grid grid-cols-2 gap-6 w-fit space-x-12 ml-10  py-4 px-4 rounded-md">
+        <li>Instructor: {{ assignment.instructor.user.first_name }} {{ assignment.instructor.user.last_name }}</li>
+        <li>Semester: {{ assignment.semester.get_sem }}</li>
+        <li>Start Date: {{ assignment.semester.start_date }}</li>
+        <li>End Date: {{ assignment.semester.end_date }}</li>
+        {% if assignment.semester.add_course_deadline or assignment.semester.drop_course_deadline %}
+        <li>Last Date to Enroll: {{assignment.semester.add_course_deadline}}</li>
+        <li>Last Date to Drop: {{assignment.semester.drop_course_deadline}}</li>
+        {% endif %}
+    </ul>
+    {% else %}
+        <div class="bg-slate-800  w-fit ml-10 mt-12 py-4 px-4 rounded-md">
+            <h1>This course has not been assigned to a instructor yet</h1>
+        </div>
+    {%endif%}
+    <div class="flex flex-row justify-center mt-10">
+        <a href="{% url 'add_classes' %}" class="border-2 border-white px-4 py-1 mx-4 rounded-3xl cursor-pointer transition hover:bg-gray-100 hover:text-black ">Back</a>
+        <a href="{% url 'add_to_cart' course_by_section_id=course.course_code_by_section %}" class="bg-green-400 px-4 py-1 mx-4 rounded-3xl cursor-pointer transition hover:bg-green-300 hover:text-black">Enroll</a>
+    </div>
+</div>
+{% endblock %}

@@ -16,8 +16,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-
+from django.conf import settings
+from django.conf.urls.static import static
+from apps.academics.views import home_view
 urlpatterns = [
+    path('',home_view,name='home'),
     path('admin/', admin.site.urls),
-    path('app1/', include('app1.urls')),
-]
+    path('student/', include('apps.academics.student_urls')),
+    path('student/', include('apps.accounts.student_urls')),
+    path('student/', include('apps.finance.student_urls')),
+] 
+if settings.DEBUG:
+    urlpatterns += static( settings.STATIC_URL, document_root=settings.STATIC_ROOT)
