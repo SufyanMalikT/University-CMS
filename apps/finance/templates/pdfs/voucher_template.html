@@ -54,6 +54,10 @@
                 <td colspan="2">Library & Exam Fees</td>
                 <td style="text-align: right;">${{ breakdown.fixed_fees.library_fee|add:breakdown.fixed_fees.exam_fee|floatformat:2 }}</td>
             </tr>
+            <tr>
+                <td colspan="2">Existing Balance Adjustment ( your credit )</td>
+                <td style="color: red; text-align: right;">-${{breakdown.existing_balance_adjustment|stringformat:".2f"|cut:"-"}}</td>
+            </tr>
         </tbody>
     </table>
 

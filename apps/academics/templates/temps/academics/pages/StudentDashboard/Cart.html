@@ -1,8 +1,8 @@
-{% extends 'temps/academics/StudentDashboard.html' %}
+{% extends 'BaseStudentDashboard.html'%}
 
 {% block main_section %}
 {% if messages %}
-{% include 'temps/app1/components/StudentDashboard/messagebanner.html' %}
+{% include 'comps/messagebanner.html' %}
 {% endif %}
 <div class="max-w-5xl mx-auto px-4 py-8">
     {% if unpaid_voucher %}
@@ -104,6 +104,13 @@
                     <td class="p-2 text-right border-none">${{ cart_total.fixed_fees.library_fee|add:cart_total.fixed_fees.exam_fee|stringformat:".2f" }}</td>
                     <td></td>
                 </tr>
+                {% if cart_total.existing_balance_adjustment %}
+                    <tr class="text-red-500 text-sm">
+                        <td colspan="3" class="p-2 text-right border-none">Existing Balance Adjustment (your credit):</td>
+                        <td class="p-2 text-right border-none">- ${{ cart_total.existing_balance_adjustment|stringformat:".2f"|cut:"-" }}</td>
+                        <td></td>
+                    </tr>
+                {% endif %}
                 <tr class="text-slate-800">
                     <td colspan="3" class="p-4 text-right font-bold">Total Semester Credits:</td>
                     <td class="p-4 text-right font-bold">{{ cart_total.total_credits }}</td>

@@ -3,13 +3,15 @@ from django.http import HttpResponse
 from django.contrib import messages
 from .services import enroll_student, unenroll_student, add_to_cart
 from ..finance.services import  calculate_cart_total,generate_fee_voucher
-from .services import remove_course_from_cart
+from .services import remove_course_from_cart, grade_per_course
 from django.contrib.auth.decorators import login_required
 from .models import Course,CourseBySection, Semester, Enrollment
 from ..finance.models import VoucherItem, FeeVoucher
 from .permissions import student_only, instructor_only
 import stripe 
 from django.conf import settings
+from django.utils import timezone
+from django.db.models import Count, Q
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -29,7 +31,7 @@ def home_view(request):
 @student_only
 def student_dashboard_view(request):
 
-    return render(request, 'temps/academics/pages/StudentDashboard/Overview.html')
+    return render(request, 'temps/academics/pages/StudentDashboard/Overview.html',{'page_name':'Overview'})
 
 @student_only
 @login_required
@@ -65,10 +67,24 @@ def student_add_courses_view(request, course_code_by_section):
         messages.error(request,e)
         return redirect('add_classes')
 
+def student_course_details_view(request, course_code_by_section):
+    course_by_section = get_object_or_404(CourseBySection, course_code_by_section=course_code_by_section)
+    return render(request, 'temps/academics/pages/StudentDashboard/CourseDetails.html',{'course':course_by_section})
 @student_only
 @login_required
 def student_course_review_page(request):
-    semesters = Semester.objects.filter(enrollments__student=request.user.student_profile).distinct()
+    student = request.user.student_profile
+    
+    # We filter Semesters to only those the student participated in
+    # Then we annotate a count specifically for THIS student's enrollments
+    semesters = Semester.objects.filter(
+        enrollments__student=student
+    ).annotate(
+        user_course_count=Count(
+            'enrollments', 
+            filter=Q(enrollments__student=student,enrollments__status='active')
+        )
+    ).distinct().order_by('-start_date')
     return render(request, 'temps/academics/pages/StudentDashboard/ReviewClassesBySemester.html',{'semesters':semesters,'page_name':'Review Classes'})
 
 @student_only
@@ -84,36 +100,33 @@ def student_course_by_semester_page_view(request, semester_id):
                 enrollment.__setattr__('assignment',assignment)
                 enrollments.append(enrollment)
     
-    return render(request, 'temps/academics/pages/StudentDashboard/ReviewClasses.html',{'enrollments':enrollments,'semester':semester,'assignments':assignments, 'page_name':'Review Classes'})
+    return render(request, 'temps/academics/pages/StudentDashboard/SemesterCourses.html',{'enrollments':enrollments,'semester':semester,'assignments':assignments, 'page_name':'Review Classes'})
 
 @student_only
 @login_required
-def student_enrolled_course_details_view(request, semester_id,course_code_by_section):
-    semester = get_object_or_404(Semester, id=semester_id)
-    course_by_section = get_object_or_404(CourseBySection, course_code_by_section=course_code_by_section)
-    enrollment = get_object_or_404(course_by_section.enrollments, student=request.user.student_profile, semester=semester)
-    assignment = get_object_or_404(course_by_section.assignments,semester=semester)
+def student_enrolled_course_detail_page_view(request, enrollment_id):
+    enrollment = get_object_or_404(Enrollment, id=enrollment_id)
+    assignment = get_object_or_404(enrollment.course_by_section.assignments,semester=enrollment.semester)
     marks = enrollment.marks.all()
-    print(enrollment)
-    return render(request, 'temps/academics/pages/StudentDashboard/EnrolledCourseDetails.html',{'enrollment':enrollment,'semester':semester,'course_by_section':course_by_section,'assignment':assignment,'marks':marks})
+    grade = grade_per_course(request.user.student_profile, enrollment.course_by_section)
+    return render(request, 'temps/academics/pages/StudentDashboard/EnrolledCourseDetails.html',{'enrollment':enrollment,'assignment':assignment,'marks':marks,'grade':grade})
 
 @student_only
 @login_required
-def course_detail_page_view(request, course_code_by_section):
-    course = get_object_or_404(CourseBySection, course_code_by_section=course_code_by_section)
-    assignments = course.assignments.latest('assigned_at')
-    return render(request ,'temps/academics/pages/StudentDashboard/CourseDetails.html',{'course':course,'assignment':assignments})
-
-@student_only
-@login_required
-def student_drop_course_view(request, enrollment_id):
-    try:
-        unenroll_student(enrollment_id)
-        messages.success(request,"Dropped course Successfully")
-        return redirect("review_classes_by_semester")
-    except Exception as e:
-        messages.error(request, e)
-        return redirect("review_classes_by_semester")
+def student_drop_course_page(request):
+    semester = Semester.latest_semester()
+    enrollments = None
+    if semester.can_drop_course:
+        enrollments = Enrollment.objects.filter(student=request.user.student_profile,status='active',semester=semester)
+    if request.method == "POST":
+        enrollment_id = request.POST.get('enrollment_ids',None)
+        if enrollment_id:
+            unenroll_student(request.user.student_profile, enrollment_id)
+            messages.success(request, "Dropped the course successfully!")
+            return redirect('drop_course')
+        messages.error(request, "coundn't find the course to drop")
+        return redirect('drop_course')
+    return render(request, 'temps/academics/pages/StudentDashboard/DropClasses.html',{'semester':semester,'enrollments':enrollments})
     
 @student_only
 @login_required

@@ -16,7 +16,8 @@
     <div class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
             <a href="{% url 'student_dashboard' %}" class="submenu-toggle w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-gray-50 rounded-lg transition-all group">
                 <div class="flex items-center">
-                    <span class="mr-3"></span> Overview
+                    <span class="fa-solid fa-magnifying-glass-chart mr-3"></span>
+                     Overview
                 </div>
             </a>
         <div class="menu-group">
@@ -30,7 +31,7 @@
                 <a href="{% url 'add_classes' %}" class="block px-6 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg">Add Classes</a>
                 <a href="{% url 'cart' %}" class="block px-6 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg">Your Cart</a>
                 <a href="{% url 'review_classes_by_semester' %}" class="block px-6 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg">Review Classes</a>
-                <a href="#" class="block px-6 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg">Drop Classes</a>
+                <a href="{% url 'drop_course' %}" class="block px-6 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg">Drop Classes</a>
             </div>
         </div>
 
@@ -42,7 +43,7 @@
                 <svg class="w-4 h-4 transform transition-transform duration-200 arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
             </button>
             <div class="submenu hidden flex-col mt-1 ml-4 border-l-2 border-gray-100 space-y-1">
-                <a href="#" class="block px-6 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg">Fee Vouchers</a>
+                <a href="{% url 'voucher_history' %}" class="block px-6 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg">Fee Vouchers</a>
                 <a href="#" class="block px-6 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg">Payment History</a>
             </div>
         </div>

@@ -1,0 +1,100 @@
+{% extends 'BaseStudentDashboard.html' %}
+
+{% block main_section %}
+{% if messages %}
+    {%include 'comps/messagebanner.html' %}
+{% endif %}
+<div class="max-w-6xl mx-auto">
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div>
+            <h1 class="text-2xl font-black text-slate-800 tracking-tight">Fee History</h1>
+            <p class="text-sm text-gray-500">View and download all your previous semester vouchers.</p>
+        </div>
+        
+        <div class="bg-blue-600 text-white px-6 py-3 rounded-2xl shadow-lg shadow-blue-100 flex items-center gap-4">
+            <div class="text-right">
+                <p class="text-[10px] font-bold uppercase opacity-80">Outstanding Balance</p>
+                <p class="text-xl font-black">$0.00</p>
+            </div>
+            <div class="h-8 w-[1px] bg-white/20"></div>
+            <div class="p-2 bg-white/20 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50/50 border-b border-gray-100">
+                        <th class="px-6 py-5 text-xs font-bold text-gray-400 uppercase tracking-widest">Semester</th>
+                        <th class="px-6 py-5 text-xs font-bold text-gray-400 uppercase tracking-widest">Voucher Details</th>
+                        <th class="px-6 py-5 text-xs font-bold text-gray-400 uppercase tracking-widest">Amount</th>
+                        <th class="px-6 py-5 text-xs font-bold text-gray-400 uppercase tracking-widest text-center">Status</th>
+                        <th class="px-6 py-5 text-xs font-bold text-gray-400 uppercase tracking-widest text-right">Receipt</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    {% for voucher in vouchers %}
+                    <tr class="hover:bg-blue-50/30 transition-colors group">
+                        <td class="px-6 py-5">
+                            <span class="font-bold text-slate-800">{{ voucher.semester.name }}</span>
+                            <p class="text-[10px] text-gray-400 mt-1 uppercase font-semibold">Issued: {{ voucher.created_at|date:"M d, Y" }}</p>
+                        </td>
+                        <td class="px-6 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <span class="text-sm font-medium text-slate-600">VCHR-{{ voucher.id|stringformat:"05d" }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5 text-sm">
+                            <span class="font-black text-slate-800">${{ voucher.total_amount }}</span>
+                        </td>
+                        <td class="px-6 py-5 text-center">
+                            {% if voucher.status == 'paid' %}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase ring-1 ring-emerald-100">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span> Paid
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-black uppercase ring-1 ring-amber-100">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span> Pending
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-5 text-right">
+                            <form action="{% url 'download_voucher_receipt' voucher_id=voucher.id%}" method="get">
+                            <button class="p-2 hover:bg-white hover:shadow-sm rounded-lg text-blue-600 transition-all active:scale-95 border border-transparent hover:border-gray-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                            </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-20 text-center">
+                            <div class="flex flex-col items-center">
+                                <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 text-gray-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 00-2 2H6a2 2 0 00-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                    </svg>
+                                </div>
+                                <p class="text-slate-500 font-bold">No vouchers found</p>
+                                <p class="text-xs text-gray-400">Your billing history will appear here once issued.</p>
+                            </div>
+                        </td>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

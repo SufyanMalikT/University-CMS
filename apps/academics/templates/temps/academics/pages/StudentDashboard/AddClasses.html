@@ -1,8 +1,8 @@
-{% extends 'temps/academics/StudentDashboard.html'%}
+{% extends 'BaseStudentDashboard.html'%}
 
 {% block main_section %}
     {% if messages %}
-    {% include 'temps/app1/components/StudentDashboard/messagebanner.html' %}
+    {% include 'comps/messagebanner.html' %}
     {% endif %}
         <div class="flex flex-row justify-between pl-12 pb-20">
             <h1 class="text-4xl font-bold"> Add classes to cart</h1>

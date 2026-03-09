@@ -1,10 +1,9 @@
 from django.db import transaction
-from .models import CourseBySection, Semester, Enrollment
+from .models import CourseBySection, Semester, Enrollment, MarkEntry
 from ..accounts.models import Student
-from ..finance.models import VoucherItem
+from ..finance.models import VoucherItem, FeeConfiguration, Ledger
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ValidationError
-
 @transaction.atomic 
 def StudentRegistration(valid_form):
     user = valid_form.save(commit=False)
@@ -50,29 +49,129 @@ def remove_course_from_cart(student, item_id:int ):
 
 @transaction.atomic
 def enroll_student(student, course_code_by_section):
+    # 1. fetch the course that student wants to enroll
     course_by_section = get_object_or_404(CourseBySection, course_code_by_section=course_code_by_section)
     semester = Semester.latest_semester()
+
+    # 2. Checking if the deadline has passed for enrollment
     if not semester.can_add_course:
         raise ValidationError("Cannot enroll in this class at this time")
     
+    # 3. Checking if the class limit has reached
     if course_by_section.no_of_enrolled_students >= course_by_section.section.limit_of_students:
         raise ValidationError("No seats available for this class")
     
+    # 4. Fetching the global fee configurations 
+    fee_per_credit = FeeConfiguration.objects.filter(name='per_credit').first() or 100
+    exam_fee = FeeConfiguration.objects.filter(name='exam_fee').first() or 30
     
-    obj, created = Enrollment.objects.get_or_create(course_by_section=course_by_section, semester=semester, student=student)
+    # 5. Checking if the enrollment already exists otherwise creating a new one
+    obj, created = Enrollment.objects.get_or_create(
+        course_by_section=course_by_section, 
+        semester=semester, student=student,
+        fee_amount=fee_per_credit.amount*course_by_section.course.credit_hours,
+        exam_fee=exam_fee.amount,
+        status='active'
+    )
 
+    # 6. If an enrollment already exists throwing an excaption as student is already enrolled in the course
     if not created:
         raise ValidationError("You are already enrolled in this class")
+    
+    # 7. Updating the cached_balance
+    # this needs to be updated because student dropping the will increase the students debit which 
+    # represents negative cached_balance
+    student.cached_balance += obj.fee_amount + obj.exam_fee
+    student.save()
 
+
+    # 8. Creating a Ledger
+    # a ledger needs to be created because we want to keep the record of students debit and credit
+    Ledger.objects.create(
+        student=student,
+        enrollment=obj,
+        amount=obj.fee_amount+obj.exam_fee,
+        transaction_type='charge'
+    )
+
+    # 9. Updating the seat count
     course_by_section.no_of_enrolled_students += 1
     course_by_section.save()
 
+
+
 @transaction.atomic
-def unenroll_student(enrollment_id):
-    enrollment = get_object_or_404(Enrollment,id=enrollment_id)
-    if not enrollment.semester.can_drop_course:
-        raise ValidationError("Cannot drop this at this time") 
+def unenroll_student(student, enrollment_id):
+    # 1. Use select_for_update on BOTH objects to lock them for this transaction
+    # This prevents balance/seat count glitches
+    enrollment = Enrollment.objects.select_for_update().get(id=enrollment_id, student=student)
     
-    enrollment.course_by_section.no_of_enrolled_students -= 1
+    if enrollment.status == 'dropped':
+        return # Already dropped, do nothing
+
+    if not enrollment.semester.can_drop_course:
+        raise ValidationError("The drop deadline for this semester has passed.") 
+
+    # 2. Update Enrollment Status
+    enrollment.status = 'dropped'
     enrollment.save()
-    enrollment.delete()
+
+    # 3. Updating the seat count
+    section = enrollment.course_by_section
+    section.no_of_enrolled_students -= 1
+    section.save()
+
+    # 4. Updating the cached_balance
+    # this needs to be updated because student dropping the will increase the students debit which 
+    # represents negative cached_balance
+    print(-(enrollment.fee_amount+enrollment.exam_fee))
+    student.cached_balance -= enrollment.fee_amount + enrollment.exam_fee
+    student.save()
+    print(student.cached_balance)
+
+    # 5. Creating a Ledger
+    # a ledger needs to be created because we want to keep the record of students debit and credit
+    Ledger.objects.create(
+        student=student,
+        enrollment=enrollment,
+        amount=-(enrollment.fee_amount+enrollment.exam_fee),
+        transaction_type ='refund'
+    )
+
+
+
+def grade_per_course(student, course_by_section):
+    mark_entries = MarkEntry.objects.filter(enrollment__student=student, enrollment__course_by_section=course_by_section)
+
+    if not mark_entries.exists():
+        return None
+    total_marks = 0
+    obtained_marks = 0
+    for entry in mark_entries:
+        obtained_marks += entry.obtained_marks
+        total_marks += entry.total_marks
+    
+    score = (total_marks/obtained_marks) * 100
+
+    if score > 90:
+        weight = 4.0
+    elif score >= 80:
+        weight = 3.66
+    elif score >= 75:
+        weight = 3.33
+    elif score >= 70:
+        weight = 3.0
+    elif score >= 64:
+        weight = 2.8
+    elif score >= 60: # Fixed the logical overlap here
+        weight = 2.5
+    elif score >= 58:
+        weight = 2.3
+    elif score >= 54:
+        weight = 2.1
+    elif score >= 50:
+        weight = 2.0
+    else:
+        weight = 0.0  # Failed course
+
+    return weight

@@ -2,10 +2,9 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser 
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from django.db.models import Avg, Sum, Count
+from django.db.models import Avg, Sum, Count, Q
 from django.core.validators import MinValueValidator, MaxValueValidator
 import uuid
-from ..accounts.models import Student, Instructor
 # Create your models here.
 
 
@@ -172,7 +171,7 @@ class CourseBySection(models.Model):
 
 class CourseAssignment(models.Model):
     course_by_section = models.ForeignKey(CourseBySection, related_name='assignments',on_delete=models.CASCADE)
-    instructor = models.ForeignKey(Instructor, related_name='assignments',on_delete=models.CASCADE)
+    instructor = models.ForeignKey('accounts.Instructor', related_name='assignments',on_delete=models.CASCADE)
     semester = models.ForeignKey(Semester, related_name='assignments', on_delete=models.CASCADE)
     assigned_at = models.DateField(auto_now_add=True)
 
@@ -185,12 +184,18 @@ class CourseAssignment(models.Model):
 
 
 class Enrollment(models.Model):
-    student = models.ForeignKey(Student,related_name='enrollments',on_delete=models.CASCADE)
+    status_choices = (
+        ('active','Active'),
+        ('dropped','Dropped (Before Deadline)'),
+        ('withdrawn','Withdrawn (After Deadline)'),
+    )
+    student = models.ForeignKey('accounts.Student',related_name='enrollments',on_delete=models.CASCADE)
     course_by_section = models.ForeignKey(CourseBySection,related_name='enrollments',on_delete=models.CASCADE)
     semester = models.ForeignKey(Semester, related_name='enrollments',on_delete=models.CASCADE)
     enrolled_at = models.DateField(auto_now_add=True)
-
-
+    status = models.CharField(max_length=30, choices=status_choices, default='active')
+    fee_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    exam_fee = models.DecimalField(max_digits=10, decimal_places=2)
     @property
     def student_username(self):
         return self.student.user.username
@@ -286,7 +291,13 @@ class Enrollment(models.Model):
         return grade
 
     class Meta:
-        unique_together = ('student','course_by_section','semester')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['student', 'course_by_section','semester'], 
+                condition=Q(status='active'),
+                name='unique_active_enrollment'
+            )
+        ]
     
     def clean(self):
         super().clean()

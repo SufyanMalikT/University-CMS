@@ -1,41 +1,110 @@
-{% extends 'temps/academics/StudentDashboard.html' %}
+{% extends 'BaseStudentDashboard.html' %}
 
 {% block main_section %}
+<div class="min-h-screen bg-gray-50/50 py-10 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-6xl mx-auto">
+        
+        <nav class="flex mb-8 text-xs font-bold uppercase tracking-widest text-gray-400">
+            <a href="" class="hover:text-slate-900 transition-colors">Search</a>
+            <span class="mx-3">/</span>
+            <span class="text-slate-900">Course Preview</span>
+        </nav>
 
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="lg:col-span-2 space-y-8">
+                <div class="bg-white border border-gray-200 rounded-[2.5rem] p-8 md:p-12 shadow-sm">
+                    <div class="flex flex-wrap items-center gap-3 mb-6">
+                        <span class="px-3 py-1 bg-slate-900 text-white text-[10px] font-black uppercase rounded-lg tracking-widest">
+                            {{ course.course_code }}
+                        </span>
+                        <span class="px-3 py-1 bg-gray-100 text-gray-500 text-[10px] font-black uppercase rounded-lg tracking-widest">
+                            {{ course.department.name }}
+                        </span>
+                    </div>
 
-<div>
-    <h1 class=" text-3xl font-bold ml-12">Class Details</h1>
-    <hr class="my-4 text-gray-400">
-    <ul class="shadow-xl bg-gray-100 font-bold grid grid-cols-2 gap-6 w-fit space-x-12 ml-10  py-4 px-4 rounded-md"> 
-        <li>Course Code: {{course.course.course_code}}</li>
-        <li>Course Name: {{course.course.name}}</li>
-        <li>Credit Hours: {{course.course.credit_hours}}</li>
-    </ul>
-    <hr class="my-4 text-gray-400">
-    <ul class="shadow-xl bg-gray-100 font-bold grid grid-cols-2 gap-6 w-fit space-x-12 ml-10  py-4 px-4 rounded-md">
-        <li>Section: {{course.section.section_id}}</li>
-        <li>Department: {{course.section.department.name}}</li>
-    {% if assignment %}
-    </ul>
-    <hr class="my-4 text-gray-400">
-    <ul class="shadow-xl bg-gray-100 font-bold grid grid-cols-2 gap-6 w-fit space-x-12 ml-10  py-4 px-4 rounded-md">
-        <li>Instructor: {{ assignment.instructor.user.first_name }} {{ assignment.instructor.user.last_name }}</li>
-        <li>Semester: {{ assignment.semester.get_sem }}</li>
-        <li>Start Date: {{ assignment.semester.start_date }}</li>
-        <li>End Date: {{ assignment.semester.end_date }}</li>
-        {% if assignment.semester.add_course_deadline or assignment.semester.drop_course_deadline %}
-        <li>Last Date to Enroll: {{assignment.semester.add_course_deadline}}</li>
-        <li>Last Date to Drop: {{assignment.semester.drop_course_deadline}}</li>
-        {% endif %}
-    </ul>
-    {% else %}
-        <div class="bg-slate-800  w-fit ml-10 mt-12 py-4 px-4 rounded-md">
-            <h1>This course has not been assigned to a instructor yet</h1>
+                    <h1 class="text-4xl md:text-5xl font-black text-slate-900 leading-tight mb-6">
+                        {{ course.name }}
+                    </h1>
+
+                    <p class="text-gray-500 leading-relaxed text-lg mb-10">
+                        {{ course.description|default:"No description available for this course yet. This module covers advanced theoretical concepts and practical applications within the field." }}
+                    </p>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 border-t border-gray-100 pt-10">
+                        <div>
+                            <p class="text-[10px] font-black text-gray-400 uppercase mb-1">Credits</p>
+                            <p class="text-lg font-bold text-slate-800">{{ course.credit_hours }} Hours</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-gray-400 uppercase mb-1">Level</p>
+                            <p class="text-lg font-bold text-slate-800">Undergraduate</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-gray-400 uppercase mb-1">Type</p>
+                            <p class="text-lg font-bold text-slate-800">{{ course.course_type }}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-gray-400 uppercase mb-1">Duration</p>
+                            <p class="text-lg font-bold text-slate-800">1 Semester</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-200 rounded-[2.5rem] p-8 shadow-sm">
+                    <h3 class="text-lg font-bold text-slate-900 mb-4">Prerequisites</h3>
+                    <div class="flex flex-wrap gap-2">
+                        {% for pre in course.prerequisites.all %}
+                            <span class="bg-gray-50 border border-gray-100 text-gray-600 px-4 py-2 rounded-2xl text-sm font-medium">
+                                {{ pre.course_code }}: {{ pre.name }}
+                            </span>
+                        {% empty %}
+                            <span class="text-gray-400 italic text-sm">None (Open Enrollment)</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-1">
+                <div class="bg-white border border-gray-200 rounded-[2.5rem] p-8 shadow-sm sticky top-8">
+                    <h3 class="text-xl font-bold text-slate-900 mb-6">Course Availability</h3>
+                    
+                    <form action="{% url 'add_to_cart' course_by_section_id=course.course_code_by_section %}" method="POST" class="space-y-6">
+                        {% csrf_token %}
+                        <div class="space-y-3">
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Section</p>
+                            {% for section in course.sections.all %}
+                            <label class="flex items-center justify-between p-4 border border-gray-100 rounded-2xl hover:border-slate-900 transition-all cursor-pointer group">
+                                <div class="flex items-center">
+                                    <input type="radio" name="section_id" value="{{ section.id }}" class="w-4 h-4 text-slate-900 border-gray-300 focus:ring-slate-900" required>
+                                    <div class="ml-3">
+                                        <span class="block text-sm font-bold text-slate-800">Section {{ section.name }}</span>
+                                        <span class="block text-[10px] text-gray-400">{{ section.teacher.name }}</span>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] font-bold text-slate-400">{{ section.available_seats }} seats left</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+
+                        <div class="pt-6 border-t border-gray-50">
+                            <div class="flex justify-between items-center mb-6">
+                                <span class="text-sm text-gray-500">Estimated Fee</span>
+                                <span class="text-2xl font-black text-slate-900">${{ estimated_fee }}</span>
+                            </div>
+                            
+                            <button type="submit" class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl hover:bg-black transition-all shadow-lg shadow-slate-200">
+                                Enroll Now
+                            </button>
+                            <p class="text-center text-[10px] text-gray-400 mt-4 uppercase font-bold tracking-tighter">
+                                Secure your spot before the deadline
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
         </div>
-    {%endif%}
-    <div class="flex flex-row justify-center mt-10">
-        <a href="{% url 'add_classes' %}" class="border-2 border-white px-4 py-1 mx-4 rounded-3xl cursor-pointer transition hover:bg-gray-100 hover:text-black ">Back</a>
-        <a href="{% url 'add_to_cart' course_by_section_id=course.course_code_by_section %}" class="bg-green-400 px-4 py-1 mx-4 rounded-3xl cursor-pointer transition hover:bg-green-300 hover:text-black">Enroll</a>
     </div>
 </div>
 {% endblock %}

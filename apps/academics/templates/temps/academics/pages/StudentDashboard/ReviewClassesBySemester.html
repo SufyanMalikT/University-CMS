@@ -1,68 +1,30 @@
-{% extends 'temps/academics/StudentDashboard.html'%}
+{% extends 'BaseStudentDashboard.html'%}
 
 {% block main_section %}
     {% if messages %}
-    {% include 'temps/app1/components/StudentDashboard/messagebanner.html'%}
+    {% include 'comps/messagebanner.html'%}
     {% endif %}
 
     {% if semesters %}
-    <div class="p-20">
-        <h1 class=" font-bold text-4xl py-2">Choose a session</h1>
-        <div class="overflow-hidden rounded-xl border border-slate-700 bg-slate-800 shadow-lg">
-            <table class="min-w-full text-sm text-slate-200">
-            
-                <thead class="bg-slate-900 text-slate-300">
-                <tr class="[&>th]:px-6 [&>th]:py-4 text-left font-semibold uppercase tracking-wider">
-                    <th>#</th>
-                    <th>Semester</th>
-                    <th>Session</th>
-                    <th>Start Date</th>
-                    <th>End Date</th>
-                    <th class="text-right">Actions</th>
-                </tr>
-                </thead>
+    <div class="max-w-5xl mx-auto py-10 px-6">
+    <h1 class="text-3xl font-black text-slate-800 mb-2">Academic Journey</h1>
+    <p class="text-gray-500 mb-10 text-sm italic">Select a semester to view your enrollments and records.</p>
 
-                <tbody class="divide-y divide-slate-700">
-                {% for semester in semesters %}
-                <tr class="transition hover:bg-slate-700/60">
-                    <td class="px-6 py-4 text-slate-400">
-                    {{ forloop.counter }}
-                    </td>
-
-                    <td class="px-6 py-4 font-semibold text-white">
-                    {{ semester.get_sem }}
-                    </td>
-
-                    <td class="px-6 py-4">
-                    {{ semester.session }}
-                    </td>
-
-                    <td class="px-6 py-4 whitespace-nowrap">
-                    {{ semester.start_date }}
-                    </td>
-
-                    <td class="px-6 py-4 whitespace-nowrap">
-                    {{ semester.end_date }}
-                    </td>
-
-                    <td class="px-6 py-4 text-right">
-                    <a
-                        href="{% url 'review_classes' semester_id=semester.id %}"
-                        class="inline-flex items-center gap-1 rounded-md bg-slate-700 px-3 py-1.5
-                            text-sm font-medium text-white transition
-                            hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500"
-                    >
-                        Enrolled Classes →
-                    </a>
-                    </td>
-                </tr>
-                {% endfor %}
-                </tbody>
-
-            </table>
-        </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for semester in semesters %}
+        <a href="{% url 'semester_details' semester_id=semester.id%}" class="group bg-white border border-gray-200 p-8 rounded-[2rem] shadow-sm hover:shadow-xl hover:border-slate-900 transition-all duration-300 relative overflow-hidden">
+            <div class="relative z-10">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Academic Period</span>
+                <h3 class="text-xl font-bold text-slate-800 mt-1 group-hover:text-slate-900">{{ semester.get_sem }}</h3>
+                <div class="mt-6 flex items-center justify-between">
+                    <span class="text-xs font-medium text-gray-400">{{ semester.user_course_count }} Courses</span>
+                    <svg class="w-5 h-5 text-gray-300 group-hover:text-slate-900 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                </div>
+            </div>
+            <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-gray-50 rounded-full group-hover:bg-slate-50 transition-colors"></div>
+        </a>
+        {% endfor %}
     </div>
-    {% else %}
-    <h1 class="text-blue-600 font-bold text-3xl py-20 ml-20 drop-shadow-lg">You have not enrolled in any course yet...</h1>
-    {% endif %}
+</div>
+{%endif %}
 {% endblock %}

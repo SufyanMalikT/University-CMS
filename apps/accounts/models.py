@@ -3,8 +3,10 @@ from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
-
+from ..finance.models import Ledger
+from django.conf import settings
 # Create your models here.
+
 
 class CustomUser(AbstractUser):
     phone = models.CharField(max_length=30,unique=True,null=True, blank=True)
@@ -17,7 +19,6 @@ class CustomUser(AbstractUser):
     @property    
     def is_instructor(self):
         return hasattr(self, 'instructor_profile')
-
         
     def clean(self):
         super().clean()
@@ -36,7 +37,17 @@ class CustomUser(AbstractUser):
     
 
 class Student(models.Model):
-    user = models.OneToOneField(CustomUser,related_name='student_profile',on_delete=models.CASCADE)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL,related_name='student_profile',on_delete=models.CASCADE)
+    cached_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
+
+    # The Repair Function
+    def reconcile_balance(self):
+        cached_balance = Ledger.objects.aggregate(total_amount=Sum('amount'))['total_amount'] or 0
+        self.cached_balance = cached_balance
+        self.save()
+
+            
 
     
     @property
@@ -102,11 +113,43 @@ class Student(models.Model):
             
         return round(grade_points_sum / credit_hour_sum, 2)
 
+    @property
+    def earned_credits(self):
+        cleared_enrollments = [enrollment for enrollment in self.enrollments.all() if enrollment.is_cleared]
+        if len(cleared_enrollments) == 0:
+            return 0
+        
+        total_earned_credits = 0
+        for enrollment in cleared_enrollments:
+            total_earned_credits += enrollment.course_by_section.course.credit_hours  
+
+        return total_earned_credits    
+
+    @property
+    def dues(self):
+        unpaid_voucher = self.fee_vouchers.filter(status='unpaid')
+        if unpaid_voucher.exists():
+            return unpaid_voucher.first().amount/100
+        return 0.00
+    @property
+    def is_registration_fee_paid(self):
+        vouchers = self.fee_vouchers.filter(status='paid')
+        
+        for v in vouchers:
+            # Use .get() twice to safely navigate the nested dict
+            breakdown = v.breakdown or {}
+            fixed_fees = breakdown.get('fixed_fees', {})
+            reg_fee = fixed_fees.get('registration', 0)
+            
+            if reg_fee > 0:
+                return True
+        return False
+    
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name}"
 
 class Instructor(models.Model): 
-    user = models.OneToOneField(CustomUser,related_name='instructor_profile',on_delete=models.CASCADE)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL,related_name='instructor_profile',on_delete=models.CASCADE)
     department = models.ForeignKey('academics.Department', on_delete=models.SET_NULL, null=True)
 
     def __str__(self):

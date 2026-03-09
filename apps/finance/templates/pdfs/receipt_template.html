@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @page { size: A4; margin: 2cm; }
+        body { font-family: 'Helvetica', 'Arial', sans-serif; color: #333; line-height: 1.6; }
+        .header-table { width: 100%; border-bottom: 2px solid #1e293b; padding-bottom: 20px; }
+        .logo { font-size: 24px; font-weight: bold; color: #1e293b; }
+        .receipt-title { text-align: right; font-size: 20px; color: #64748b; text-transform: uppercase; }
+        
+        .info-section { margin-top: 30px; width: 100%; }
+        .info-box { width: 50%; vertical-align: top; }
+        .label { font-size: 10px; text-transform: uppercase; color: #94a3b8; font-weight: bold; }
+        .value { font-size: 13px; font-weight: bold; margin-bottom: 10px; }
+
+        .items-table { width: 100%; margin-top: 40px; border-collapse: collapse; }
+        .items-table th { background-color: #f8fafc; padding: 12px; text-align: left; font-size: 11px; border-bottom: 1px solid #e2e8f0; }
+        .items-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 12px; }
+        
+        .total-section { margin-top: 20px; text-align: right; }
+        .total-box { display: inline-block; width: 200px; padding: 15px; background: #1e293b; color: white; border-radius: 8px; }
+        
+        .footer { position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 10px; color: #94a3b8; }
+    </style>
+</head>
+<body>
+    <table class="header-table">
+        <tr>
+            <td class="logo">UNIVERSITY CMS</td>
+            <td class="receipt-title">Official Receipt</td>
+        </tr>
+    </table>
+
+    <table class="info-section">
+        <tr>
+            <td class="info-box">
+                <div class="label">Billed To:</div>
+                <div class="value">{{ voucher.student.user.get_full_name }}</div>
+                <div class="value">ID: {{ voucher.student.user.username }}</div>
+                <div class="value">{{ voucher.student.department.name }}</div>
+            </td>
+            <td class="info-box" style="text-align: right;">
+                <div class="label">Receipt Number:</div>
+                <div class="value">#REC-{{ voucher.id|stringformat:"05d" }}</div>
+                <div class="label">Date Issued:</div>
+                <div class="value">{{ voucher.created_at|date:"M d, Y" }}</div>
+                <div class="label">Semester:</div>
+                <div class="value">{{ voucher.semester.get_sem }}</div>
+            </td>
+        </tr>
+    </table>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th style="text-align: right;">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Tuition Fee - {{ voucher.semester.get_sem }}</td>
+                <td style="text-align: right;">${{ voucher.tution_fee }}</td>
+            </tr>
+            <tr>
+                <td>Registration - {{ voucher.semester.get_sem }}</td>
+                <td style="text-align: right;">${{ voucher.tution_fee }}</td>
+            </tr>
+            <tr>
+                <td>Library & Lab Charges</td>
+                <td style="text-align: right;">${{ voucher.misc_fee }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="total-section">
+        <div class="total-box">
+            <span style="font-size: 10px; opacity: 0.8;">TOTAL PAID</span><br>
+            <span style="font-size: 20px; font-weight: 900;">${{ voucher.total_amount }}</span>
+        </div>
+    </div>
+
+    <div class="footer">
+        This is a computer-generated document. No signature is required.<br>
+        &copy; 2026 University Management System. All rights reserved.
+    </div>
+</body>
+</html>

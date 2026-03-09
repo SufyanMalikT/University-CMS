@@ -2,6 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 import uuid
 from django.utils import timezone
+
 # Create your models here.
 
 class FeeVoucher(models.Model):
@@ -47,8 +48,19 @@ class FeeVoucher(models.Model):
         super().save(*args, **kwargs)
 
     @property
+    def tution_fee(self):
+        return self.breakdown['total_course_fees']
+    
+    @property
+    def misc_fee(self):
+        return self.breakdown['fixed_fees']['exam_fee']+self.breakdown['fixed_fees']['library_fee']
+    
+    @property
+    def registration_fee(self):
+        return self.breakdown['fixed_fees']['registraton']
+    @property
     def total_amount(self):
-        return self.amount + self.fine_amount
+        return (self.amount + self.fine_amount) /100
     
     def total_ammount_in_cents(self):
         return int(self.total_amount*100)
@@ -94,3 +106,20 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"{self.student.user.get_full_name()} - ${self.amount_paid}"
+    
+
+class Ledger(models.Model):
+    transaction_types_choices = (
+        ('charge','Charge (Enrollment)'),
+        ('payment','Payment (Stripe)'),
+        ('refund','Refund (Drop)')
+    )
+    student = models.ForeignKey('accounts.Student', related_name='ledger_entries',on_delete=models.CASCADE)
+    enrollment = models.ForeignKey('academics.Enrollment', null=True, blank=True, on_delete=models.SET_NULL)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    transaction_type = models.CharField(max_length=20,choices=transaction_types_choices)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    payment_reference = models.OneToOneField(Payment, null=True, blank=True, on_delete=models.SET_NULL)
+
+    def __str__(self):
+        return f"{self.student.user.get_full_name()} amount:{self.amount}"

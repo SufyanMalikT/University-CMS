@@ -1,0 +1,51 @@
+{% extends 'BaseStudentDashboard.html'%}
+
+{% block main_section %}
+
+<div class="max-w-5xl mx-auto py-10 px-6">
+    <nav class="flex mb-6 text-xs font-bold uppercase tracking-widest text-gray-400">
+        <a href="" class="hover:text-slate-800">Semesters</a>
+        <span class="mx-2">/</span>
+        <span class="text-slate-800">{{ semester.get_sem }}</span>
+    </nav>
+
+    <div class="bg-white rounded-[2rem] border border-gray-200 shadow-sm overflow-hidden">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-gray-50/50 border-b border-gray-100">
+                <tr>
+                    <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Status</th>
+                    <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Course Name</th>
+                    <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Cr. Hrs</th>
+                    <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                {% for enrollment in enrollments %}
+                <tr class="hover:bg-gray-50/30 transition-all">
+                    <td class="px-8 py-6">
+                        {% if enrollment.status == "active" %}
+                        <p class="text-black text-xs font-bold tracking-widest text-red-500">Active</p>
+                        {% else %}
+                            <p class="text-black text-xs font-bold tracking-widest text-red-500">Dropped</p>
+                        {%endif%}
+                    </td>
+                    <td class="px-8 py-6">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-bold text-slate-800">{{ enrollment.course_by_section.course.name }}</span>
+                            <span class="text-[11px] font-mono text-gray-400 uppercase mt-1">{{ enrollment.course_by_section.course.course_code }}</span>
+                        </div>
+                    </td>
+                    <td class="px-8 py-6 text-center text-sm font-semibold text-slate-600">{{ enrollment.course_by_section.course.credit_hours }}</td>
+                    <td class="px-8 py-6 text-right">
+                        <a href="{% url 'enrolled_course_details' enrollment_id=enrollment.id %}" class="inline-flex items-center px-4 py-2 bg-slate-800 text-white text-[10px] font-black uppercase rounded-xl hover:bg-black transition-all">
+                            View Details
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "BaseStudentDashboard.html" %}
+
+{% block main_section %}
+
+{% if messages%}
+{% include "comps/messagebanner.html" %}
+{% endif %}
+
+{% if semester.can_drop_course %}
+<div class="min-h-screen bg-gray-50/50 py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-6xl mx-auto">
+        <div class="mb-10">
+            <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Drop Courses</h1>
+            <p class="text-gray-500 mt-1">Select the courses you wish to withdraw from for the current semester.</p>
+        </div>
+
+        <form method="POST" action="{% url 'drop_course'%}">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <div class="lg:col-span-2 space-y-4">
+                    <h2 class="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Currently Enrolled</h2>
+                    
+                    {% for enrollment in enrollments %}
+                    <label class="relative flex items-center bg-white border border-gray-200 p-5 rounded-3xl cursor-pointer hover:border-gray-400 transition-all group">
+                        <div class="flex items-center h-5">
+                            <input type="checkbox" name="enrollment_ids" value="{{ enrollment.id }}" 
+                                   class="h-5 w-5 text-gray-900 border-gray-300 rounded-full focus:ring-gray-900">
+                        </div>
+                        <div class="ml-4 flex-grow">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <span class="block text-sm font-bold text-gray-800 group-hover:text-black">{{ enrollment.course_by_section.course.name }}</span>
+                                    <span class="block text-[10px] font-mono text-gray-400 uppercase">{{ enrollment.course_by_section.course.course_code }} • {{ enrollment.course_by_section.course.credit_hours }} Credits</span>
+                                </div>
+                                <span class="text-[10px] font-bold px-2 py-1 rounded bg-gray-100 text-gray-500 uppercase">
+                                    {{ enrollment.course_by_section.course.course_type }}
+                                </span>
+                            </div>
+                        </div>
+                    </label>
+                    {% empty %}
+                    <div class="bg-white border-2 border-dashed border-gray-200 rounded-3xl p-12 text-center">
+                        <p class="text-gray-400 font-medium">No active enrollments found for this semester.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="lg:col-span-1">
+                    <div class="bg-white border border-gray-200 rounded-3xl shadow-sm p-6 sticky top-8">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">Drop Summary</h3>
+                        
+                        <div class="space-y-4 border-b border-gray-100 pb-6 mb-6">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-500">Refund Status</span>
+                                {% if is_before_deadline %}
+                                <span class="text-emerald-600 font-bold italic">Full Credit (100%)</span>
+                                {% else %}
+                                <span class="text-red-500 font-bold italic">No Refund</span>
+                                {% endif %}
+                            </div>
+                            <p class="text-[11px] text-gray-400 leading-relaxed">
+                                <strong>Note:</strong> 
+                                {% if semester.can_drop_course %}
+                                Since you are dropping before <strong>{{ deadline_date }}</strong>, the tuition fee will be credited to your next voucher.
+                                {% else %}
+                                The deadline has passed. Dropping now will result in a <strong>W (Withdrawn)</strong> grade and no fee refund.
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <button type="submit" 
+                                class="w-full bg-gray-900 text-white font-bold py-4 rounded-2xl hover:bg-black transition-all shadow-lg shadow-gray-200 disabled:opacity-50"
+                                {% if not enrollments %}disabled{% endif %}>
+                            Confirm Drop
+                        </button>
+                        
+                        <a href="" class="block text-center mt-4 text-xs font-bold text-gray-400 hover:text-gray-600 uppercase tracking-widest">
+                            Cancel and Go Back
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% else %}
+<h1 class="font-bold text-3xl">The drop course deadline has passed for this semester</h1>
+{% endif %}
+{% endblock %}
