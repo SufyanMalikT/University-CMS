@@ -11,28 +11,41 @@ from django.contrib import messages
 from django.db import transaction
 from ..academics.services import enroll_student
 from django.urls import reverse
+from django.db.models import Sum
 # Create your views here.
 
 @student_only
 @login_required
-def download_fee_voucher(request, voucher_id):
+def download_fee_voucher_view(request, voucher_id):
     # Security: Ensure the student can only download their own voucher
     voucher = get_object_or_404(FeeVoucher, id=voucher_id, student=request.user.student_profile)
-    context = {
-        'voucher': voucher,
-        'breakdown': voucher.breakdown, # This is your JSON dictionary
-        'today': timezone.now(),
-    }
+
     
-    pdf = render_to_pdf('pdfs/voucher_template.html', context)
+    context = {
+        'download_url': reverse('actual_download_fee_voucher', args=[voucher_id]),
+        'redirect_url': reverse('student_dashboard')
+        }
+    return redirect('cart')
+
+@student_only
+@login_required
+def actual_download_fee_voucher(request,voucher_id):
+    voucher = get_object_or_404(FeeVoucher, id=voucher_id, student=request.user.student_profile)
+
+    context = {
+        'voucher':voucher,
+        'breakdown':voucher.breakdown, 
+        'today':timezone.now()
+    }
+
+    pdf = render_to_pdf('pdfs/voucher_template.html',context)
     if pdf:
         response = HttpResponse(pdf, content_type='application/pdf')
-        filename = f"Voucher_{voucher.id}.pdf"
-        content = f"attachment; filename={filename}"
-        response['Content-Disposition'] = content
+        filename = f"{voucher.voucher_id}.pdf"
+        content = f"attachment; filename:{filename};"
+        response['content-disposition'] = content
         return response
-    return HttpResponse("Error generating PDF", status=400)
-
+    return HttpResponse("Error generating pdf", status=400)
 @student_only
 @login_required
 def view_fee_voucher(request, voucher_id):
@@ -113,7 +126,7 @@ def create_checkout_session(request, voucher_id):
             },
             # Using reverse() ensures your URLs don't break if you rename them
             success_url=request.build_absolute_uri(reverse('payment_success_page')),
-            cancel_url=request.build_absolute_uri(reverse('cart_view')),
+            cancel_url=request.build_absolute_uri(reverse('cart')),
         )
         return redirect(checkout_session.url, code=303)
     except Exception as e:
@@ -129,9 +142,11 @@ def success_payment_page_view(request):
 
 @login_required
 @student_only
-def fee_voucher_view(request):
-    prev_vouchers = request.user.student_profile.fee_vouchers.all().order_by('-created_at')
-    return render(request, 'FeeVouchers.html',{'vouchers':prev_vouchers})
+def fee_history_view(request):
+    student = request.user.student_profile
+    outstanding_balance = student.fee_vouchers.filter(status='unpaid').aggregate(total=Sum('amount'))['total'] or 0
+    prev_vouchers = student.fee_vouchers.all().order_by('-created_at')
+    return render(request, 'FeeReceipts.html',{'vouchers':prev_vouchers,'outstanding_balance':outstanding_balance})
 
 @login_required
 @student_only
@@ -156,3 +171,5 @@ def download_voucher_receipt(request, voucher_id):
         response['content-disposition'] = content 
         return response
     return HttpResponse("Receipt Generation Failed",status=400)    
+
+

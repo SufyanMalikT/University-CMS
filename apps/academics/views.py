@@ -91,7 +91,7 @@ def student_course_review_page(request):
 @login_required
 def student_course_by_semester_page_view(request, semester_id):
     semester = get_object_or_404(Semester, id=semester_id )
-    assignments = semester.assignments.filter(course_by_section__enrollments__student= request.user.student_profile)
+    assignments = semester.assignments.filter(course_by_section__enrollments__student= request.user.student_profile).distinct()
     enrollments0 = semester.enrollments.filter(student= request.user.student_profile)
     enrollments = []
     for enrollment in enrollments0:
@@ -99,7 +99,7 @@ def student_course_by_semester_page_view(request, semester_id):
             if enrollment.course_by_section == assignment.course_by_section:
                 enrollment.__setattr__('assignment',assignment)
                 enrollments.append(enrollment)
-    
+                print(enrollment.id)
     return render(request, 'temps/academics/pages/StudentDashboard/SemesterCourses.html',{'enrollments':enrollments,'semester':semester,'assignments':assignments, 'page_name':'Review Classes'})
 
 @student_only
@@ -121,8 +121,11 @@ def student_drop_course_page(request):
     if request.method == "POST":
         enrollment_id = request.POST.get('enrollment_ids',None)
         if enrollment_id:
-            unenroll_student(request.user.student_profile, enrollment_id)
-            messages.success(request, "Dropped the course successfully!")
+            try:
+                unenroll_student(request.user.student_profile, enrollment_id)
+                messages.success(request, "Dropped the course successfully!")
+            except Exception as e:
+                messages.error(request, str(e))
             return redirect('drop_course')
         messages.error(request, "coundn't find the course to drop")
         return redirect('drop_course')
@@ -131,12 +134,16 @@ def student_drop_course_page(request):
 @student_only
 @login_required
 def add_to_cart_view(request, course_by_section_id):
+    is_already_enrolled = Enrollment.objects.filter(student=request.user.student_profile,course_by_section__course_code_by_section=course_by_section_id,semester=Semester.latest_semester(),status='active').exists()
+    print(is_already_enrolled)
+    if is_already_enrolled:
+        messages.error(request, "Cannot add to cart. You are already enrolled in this course")
+        return redirect("add_classes")
     try:
         add_to_cart(request.user.student_profile, course_by_section_id)
         messages.success(request,'The course has been added to the cart')
     except Exception as e:
         messages.error(request, e)
-    print("hello")
     return redirect('add_classes')
 
 
@@ -176,3 +183,8 @@ def enrolled_class_details_page_view(request, enrollment_id):
     enrollment = get_object_or_404(Enrollment, id=enrollment_id)
 
     return render(request, 'temps/academics/pages/StudentDashbaord/EnrolledClassDetials.html',{'enrollment':enrollment})
+
+@student_only
+@login_required
+def results_page_view(request):
+    return render(request,'temps/academics/pages/StudentDashboard/Results.html',{})

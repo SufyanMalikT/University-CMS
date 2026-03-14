@@ -25,6 +25,7 @@ urlpatterns = [
     path('student/', include('apps.academics.student_urls')),
     path('student/', include('apps.accounts.student_urls')),
     path('student/', include('apps.finance.student_urls')),
+    path('api/', include('apps.api.urls')),
 ] 
 if settings.DEBUG:
     urlpatterns += static( settings.STATIC_URL, document_root=settings.STATIC_ROOT)

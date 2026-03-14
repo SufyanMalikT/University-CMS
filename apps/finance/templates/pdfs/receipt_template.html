@@ -70,6 +70,10 @@
                 <td>Library & Lab Charges</td>
                 <td style="text-align: right;">${{ voucher.misc_fee }}</td>
             </tr>
+            <tr>
+                <td>Existing Balance Adjustment (your credit)</td>
+                <td  style="color:red; text-align: right;">-${{ voucher.breakdown.existing_balance_adjustment|cut:'-' }}</td>
+            </tr>
         </tbody>
     </table>
 

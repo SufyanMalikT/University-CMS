@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Error | University Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen font-sans">
+
+    <div class="max-w-md w-full bg-white shadow-2xl rounded-2xl overflow-hidden border border-gray-100">
+        <div class="bg-red-500 p-6 text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-white bg-opacity-20 rounded-full mb-4">
+                <i class="fa-solid fa-triangle-exclamation text-white text-3xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-white uppercase tracking-wider">Something Went Wrong</h1>
+        </div>
+
+        <div class="p-8 text-center">
+            <p class="text-gray-600 mb-6 text-lg">
+                {% if message %}
+                    {{ message }}
+                {% else %}
+                    We encountered an unexpected issue while processing your request. Your account has not been charged.
+                {% endif %}
+            </p>
+
+            <div class="space-y-3">
+                <a href="{% url 'cart' %}" class="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition duration-200">
+                    <i class="fa-solid fa-cart-shopping mr-2"></i> Return to Cart
+                </a>
+                <a href="{% url 'student_dashboard' %}" class="block w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-lg transition duration-200">
+                    Go to Dashboard
+                </a>
+            </div>
+
+            <hr class="my-8 border-gray-200">
+
+            <div class="text-left">
+                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-widest mb-4 text-center">Need Assistance?</h3>
+                <div class="flex items-start space-x-4 p-3 bg-blue-50 rounded-xl border border-blue-100">
+                    <i class="fa-solid fa-headset text-blue-500 mt-1"></i>
+                    <div>
+                        <p class="text-sm text-blue-800 font-medium">Finance Help Desk</p>
+                        <p class="text-xs text-blue-600">Reference ID: <span class="font-mono font-bold">#{{ error_id|default:"ERR-9921" }}</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gray-50 p-4 text-center border-t border-gray-100">
+            <p class="text-xs text-gray-400">&copy; 2026 University Management System. All rights reserved.</p>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -62,7 +62,7 @@ class Student(models.Model):
     
 
     def used_credits_for_semester(self, semester):
-        return self.enrollments.filter(semester=semester) \
+        return self.enrollments.filter(semester=semester, status='active') \
             .aggregate(total=Sum('course_by_section__course__credit_hours'))['total'] or 0
     
 

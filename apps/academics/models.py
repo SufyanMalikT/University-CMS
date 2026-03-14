@@ -139,10 +139,6 @@ class CourseBySection(models.Model):
     created_at = models.DateField(auto_now_add=True)
     no_of_enrolled_students = models.PositiveSmallIntegerField(default=0)
 
-    @property
-    def no_of_students_enrolled(self):
-        return self.enrollments.aggregate(total=Count('id'))['total'] or 0
-
     @property 
     def available_seats(self):
         pending_seats = self.voucher_items.filter(
@@ -375,3 +371,74 @@ class MarkEntry(models.Model):
         return f"{self.title} - {self.enrollment.student.user.username}"
     
 
+class ClassSchedule(models.Model):
+    weekday_choices = (
+        ('monday', 'Monday'),
+        ('tuesday', 'Tuesday'),
+        ('wednesday', 'Wednesday'),
+        ('thursday', 'Thursday'),
+        ('friday', 'Friday'),
+        ('saturday', 'Saturday'),
+        ('sunday', 'Sunday'),
+    ) 
+    course_by_section = models.ForeignKey(CourseBySection, related_name='schedules', on_delete=models.CASCADE)
+    semester = models.ForeignKey(Semester, related_name='schudeles', on_delete=models.CASCADE)
+    day_of_the_week = models.CharField(max_length=20, choices=weekday_choices)
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def clean(self):
+        super().clean()
+        if self.start_time > self.end_time:
+            raise ValidationError("The class start time cannot be past its end time")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    class Meta:
+        unique_together = ('course_by_section', 'semester','day_of_the_week')
+    def __str__(self):
+        return f"{self.course_by_section.course.name} from {self.start_time} till {self.end_time}"
+    
+class ClassSession(models.Model):
+    instructor = models.ForeignKey('accounts.Instructor', related_name='class_sessions', on_delete=models.SET_NULL, null=True)
+    schedule = models.ForeignKey(ClassSchedule, related_name='sessions',on_delete=models.SET_NULL, null=True)
+    date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def clean(self):
+        super().clean()
+
+        if self.date > timezone.now().date():
+            raise ValidationError("A session can only be created when it is already occured.")
+        
+    def save(self, *args , **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.instructor.user.get_full_name()} attended {self.schedule.course_by_section.course.name} on {self.date}"
+    
+class AttendanceEntry(models.Model):
+    session = models.ForeignKey(ClassSession, related_name='attendance', on_delete=models.CASCADE)
+    student = models.ForeignKey('accounts.student', related_name='attendance', on_delete=models.CASCADE)
+    was_present = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('session','student')
+
+    def clean(self):
+        super().clean()
+        if not self.student.enrollments.filter(status='active',course_by_section=self.session.schedule.course_by_section).exists():
+            raise ValidationError("Student is not enrolled this course")
+        
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.student.user.get_full_name()} - {self.session.date}"

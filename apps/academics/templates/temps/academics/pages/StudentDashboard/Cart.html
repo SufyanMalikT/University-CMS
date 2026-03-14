@@ -6,6 +6,15 @@
 {% endif %}
 <div class="max-w-5xl mx-auto px-4 py-8">
     {% if unpaid_voucher %}
+    {% if unpaid_voucher.amount == 0%}
+        <div class="bg-blue-50 border border-amber-200 rounded-lg p-6">
+            <h1 class="text-2xl font-bold">Are you sure?</h1>
+            <p class="py-2"><span class="font-bold">Note:</span> Since your grand total is zero because of your credit. You can directly enroll without paying.</p>
+            <a href="{% url 'pay_voucher' voucher_id=unpaid_voucher.id %}" class="text-white py-2 px-4 font-bold bg-green-400 my-4 tracking-widest transition hover:bg-green-500">
+                Enroll
+            </a>
+        </div>
+    {% else %}
     <div class="bg-amber-50 border border-amber-200 rounded-lg p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-semibold text-amber-800">Pending Fee Voucher</h2>
@@ -34,6 +43,7 @@
                 </form>
             </div>
         </div>
+    {% endif %}
     {% else %}
 
     <h2 class="text-2xl font-bold text-slate-800 mb-6">Your Course Cart</h2>
