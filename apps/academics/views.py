@@ -3,7 +3,8 @@ from django.http import HttpResponse
 from django.contrib import messages
 from .services import enroll_student, unenroll_student, add_to_cart
 from ..finance.services import  calculate_cart_total,generate_fee_voucher
-from .services import remove_course_from_cart, grade_per_course
+from .services import remove_course_from_cart, grade_per_course, \
+                        calculate_overall_attendance_percentage, calculate_course_attendance
 from django.contrib.auth.decorators import login_required
 from .models import Course,CourseBySection, Semester, Enrollment
 from ..finance.models import VoucherItem, FeeVoucher
@@ -30,8 +31,8 @@ def home_view(request):
 @login_required
 @student_only
 def student_dashboard_view(request):
-
-    return render(request, 'temps/academics/pages/StudentDashboard/Overview.html',{'page_name':'Overview'})
+    attendance_percentage = calculate_overall_attendance_percentage(request.user.student_profile)
+    return render(request, 'temps/academics/pages/StudentDashboard/Overview.html',{'page_name':'Overview','attendance_percentage':attendance_percentage})
 
 @student_only
 @login_required
@@ -105,11 +106,13 @@ def student_course_by_semester_page_view(request, semester_id):
 @student_only
 @login_required
 def student_enrolled_course_detail_page_view(request, enrollment_id):
+    student = request.user.student_profile
     enrollment = get_object_or_404(Enrollment, id=enrollment_id)
     assignment = get_object_or_404(enrollment.course_by_section.assignments,semester=enrollment.semester)
     marks = enrollment.marks.all()
-    grade = grade_per_course(request.user.student_profile, enrollment.course_by_section)
-    return render(request, 'temps/academics/pages/StudentDashboard/EnrolledCourseDetails.html',{'enrollment':enrollment,'assignment':assignment,'marks':marks,'grade':grade})
+    grade = grade_per_course(student, enrollment.course_by_section)
+    attendance = calculate_course_attendance(student, enrollment.course_by_section)
+    return render(request, 'temps/academics/pages/StudentDashboard/EnrolledCourseDetails.html',{'enrollment':enrollment,'assignment':assignment,'marks':marks,'grade':grade, 'attendance':attendance,'page_name':'Enrolled Course Details'})
 
 @student_only
 @login_required
