@@ -5,7 +5,7 @@
     
     {% include 'temps/academics/components/StudentDashboard/stats_card.html' with title="CGPA" value=user.student_profile.calculate_cgpa icon="🎓" color="blue" %}
     
-    {% include 'temps/academics/components/StudentDashboard/stats_card.html' with title="Attendance" value="92%" icon="📅" color="green" %}
+    {% include 'temps/academics/components/StudentDashboard/stats_card.html' with title="Attendance(%)" value=attendance_percentage icon="📅" color="green" %}
     
     {% include 'temps/academics/components/StudentDashboard/stats_card.html' with title="Credits" value=user.student_profile.earned_credits icon="📜" color="purple" %}
     
