@@ -4,6 +4,8 @@ from ..accounts.models import Student
 from ..finance.models import VoucherItem, FeeConfiguration, Ledger
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ValidationError
+from .models import AttendanceEntry
+from django.db.models import Count, Q
 @transaction.atomic 
 def StudentRegistration(valid_form):
     user = valid_form.save(commit=False)
@@ -175,3 +177,44 @@ def grade_per_course(student, course_by_section):
         weight = 0.0  # Failed course
 
     return weight
+
+def calculate_overall_attendance_percentage(student):
+    # 1. Get all attendance records for THIS student across all their courses
+    attendance_stats = AttendanceEntry.objects.filter(
+        student=student,
+        session__schedule__course_by_section__enrollments__status='active'
+    ).aggregate(
+        total_sessions=Count('id'),
+        present_count=Count('id', filter=Q(was_present=True))
+    )
+
+    total = attendance_stats['total_sessions'] or 0
+    present = attendance_stats['present_count'] or 0
+
+    # 2. Safety check for Zero Division
+    if total == 0:
+        return 0
+
+    return (present / total) * 100
+
+
+def calculate_course_attendance(student, course_by_section):
+    enrollment = Enrollment.objects.filter(student=student, course_by_section=course_by_section, status='active')
+    if not enrollment.exists:
+        raise Exception("Student is not enrolled in this course")
+    attendance_stats = AttendanceEntry.objects.filter(
+        student=student, 
+        session__schedule__course_by_section=course_by_section
+        ).aggregate(
+            total_sessions=Count('id'),
+            present_count=Count('id',filter=Q(was_present=True))
+        )
+    
+    total_session = attendance_stats['total_sessions'] or 0
+    present_count = attendance_stats['present_count'] or 0
+
+    if total_session == 0:
+        return 0
+    
+    return (present_count/total_session)*100
+    
