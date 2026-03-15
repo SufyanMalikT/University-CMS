@@ -69,7 +69,7 @@ class Student(models.Model):
 
     def calculate_cgpa(self):
         # Use select_related to avoid hitting the database inside the loop (N+1 problem)
-        enrollments = self.enrollments.select_related('course_by_section__course').all()
+        enrollments = self.enrollments.select_related('course_by_section__course').filter(status='active')
         
         if not enrollments:
             return 0.0

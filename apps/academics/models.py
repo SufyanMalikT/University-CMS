@@ -217,7 +217,7 @@ class Enrollment(models.Model):
         
     @property
     def percentage(self):
-        data = self.marks.aggregate(
+        data = self.marks.filter(is_locked=True).aggregate(
             obtained=Sum('obtained_marks'),
             total=Sum('total_marks')
         )
@@ -315,7 +315,7 @@ class MarkEntry(models.Model):
     theory_category_choices = (
         ('Assignment','Assignment'),
         ('Participation','Participation'),
-        ('Presestation','Presentation'),
+        ('Presentation','Presentation'),
         ('Project','Project'),
         ('Midterm','Midterm'),
         ('Finalterm','Finalterm'),
@@ -335,9 +335,13 @@ class MarkEntry(models.Model):
     obtained_marks = models.DecimalField(max_digits=5, decimal_places=2)
     total_marks = models.DecimalField(max_digits=5, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
-
+    is_locked = models.BooleanField(default=False)
 
     def clean(self):
+        if self.pk:
+            original_entry = MarkEntry.objects.get(pk=self.pk)
+            if original_entry.is_locked:
+                raise ValidationError("This mark entry is locked, it cannot be modified")
         super().clean()
 
         theory_keys = [choice[0] for choice in self.theory_category_choices]

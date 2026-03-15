@@ -110,9 +110,8 @@ def student_enrolled_course_detail_page_view(request, enrollment_id):
     enrollment = get_object_or_404(Enrollment, id=enrollment_id)
     assignment = get_object_or_404(enrollment.course_by_section.assignments,semester=enrollment.semester)
     marks = enrollment.marks.all()
-    grade = grade_per_course(student, enrollment.course_by_section)
     attendance = calculate_course_attendance(student, enrollment.course_by_section)
-    return render(request, 'temps/academics/pages/StudentDashboard/EnrolledCourseDetails.html',{'enrollment':enrollment,'assignment':assignment,'marks':marks,'grade':grade, 'attendance':attendance,'page_name':'Enrolled Course Details'})
+    return render(request, 'temps/academics/pages/StudentDashboard/EnrolledCourseDetails.html',{'enrollment':enrollment,'assignment':assignment, 'attendance':attendance,'page_name':'Enrolled Course Details'})
 
 @student_only
 @login_required

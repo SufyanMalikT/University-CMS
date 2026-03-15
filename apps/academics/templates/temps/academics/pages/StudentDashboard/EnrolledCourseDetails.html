@@ -40,8 +40,8 @@
                     </div>
                     <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
                         <span class="block text-[10px] text-gray-400 uppercase">Grade</span>
-                        {% if grade %}
-                        <span class="text-xl font-black text-slate-800">{%if enrollment.status == 'dropped' %}--{%else%}{{grade}}{%endif%}</span>
+                        {% if enrollment.grade %}
+                        <span class="text-xl font-black text-slate-800">{%if enrollment.status == 'dropped' %}--{%else%}{{enrollment.gpa}}{%endif%}</span>
                         {% else %}
                         <span class="text-xl font-black text-slate-800">--</span>
                         {% endif%}
