@@ -13,6 +13,7 @@ import stripe
 from django.conf import settings
 from django.utils import timezone
 from django.db.models import Count, Q, Sum
+from ..finance.utils.FeeVoucher import render_to_pdf
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -217,4 +218,31 @@ def marks_details_page_view(request, enrollment_id):
         messages.error(request, str(e))
         return redirect('result')
     
-    mark_entries = enrollment.ento
+    mark_entries = enrollment.marks.filter(is_locked=True)
+    assignment = enrollment.course_by_section.assignments.get(semester=enrollment.semester, course_by_section=enrollment.course_by_section)
+    return render(request, "temps/academics/pages/StudentDashboard/MarksDetails.html",{'mark_entries':mark_entries,'enrollment':enrollment,'assignment':assignment,'page_name':'Results'})
+
+
+@login_required
+@student_only
+def download_transcript(request):
+    student = request.user.student_profile
+    semesters = Semester.objects.filter(enrollments__student=student,enrollments__status='active').distinct()
+    for semester in semesters:
+        semester.course_results = semester.enrollments.filter(student=student, status='active', marks__is_locked=True).distinct()
+
+    context = {
+        'user': request.user,
+        'semesters':semesters,
+        'total_credits':student.earned_credits,
+        'cgpa':student.calculate_cgpa()
+    }
+    pdf = render_to_pdf("temps/academics/pdfs/transcript_template.html", context)
+    if pdf:
+        response = HttpResponse(pdf,content_type='application/pdf')
+        filename = f'{request.user.get_full_name()}\'s transcript(Unofficial)'
+        content = f'attachment; filename:{filename};'
+        response['content-disposition'] = content
+        return response
+    messages.error(request,"Couldn't download transcript")
+    return redirect('result')

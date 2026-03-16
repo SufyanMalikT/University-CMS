@@ -4,7 +4,7 @@
 <div class="min-h-screen p-6 md:p-10 max-w-4xl mx-auto">
         
         <nav class="flex mb-6 text-sm text-slate-500 font-medium">
-            <a href="{% url 'results_dashboard' %}" class="hover:text-indigo-600 transition-colors">Results</a>
+            <a href="" class="hover:text-indigo-600 transition-colors">Results</a>
             <span class="mx-2 text-slate-300">/</span>
             <a href="javascript:history.back()" class="hover:text-indigo-600 transition-colors">Semester {{ enrollment.semester.number }}</a>
             <span class="mx-2 text-slate-300">/</span>
@@ -15,20 +15,20 @@
             <div class="absolute top-0 right-0 p-6">
                 <div class="text-right">
                     <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Total Weightage</p>
-                    <p class="text-4xl font-black text-indigo-600">{{ total_percentage|floatformat:0 }}%</p>
+                    <p class="text-4xl font-black text-indigo-600">{{ enrollment.percentage|floatformat:0 }}%</p>
                 </div>
             </div>
 
             <div class="relative z-10">
                 <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider">
-                    {{ enrollment.course_by_section.course.code }}
+                    {{ enrollment.course_by_section.course.course_code }}
                 </span>
                 <h1 class="text-3xl font-black text-slate-800 mt-3 leading-tight">
                     {{ enrollment.course_by_section.course.name }}
                 </h1>
                 <div class="flex gap-4 mt-4 text-sm text-slate-500 font-medium">
                     <span><i class="far fa-calendar-alt mr-1"></i> {{ enrollment.semester.session }}</span>
-                    <span><i class="far fa-user mr-1"></i> {{ enrollment.course_by_section.teacher.get_full_name }}</span>
+                    <span><i class="far fa-user mr-1"></i> {{ assignment.instructor.user.get_full_name }}</span>
                 </div>
             </div>
         </header>

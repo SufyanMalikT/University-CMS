@@ -4,7 +4,7 @@
     <div class="min-h-screen p-6 md:p-10 max-w-7xl mx-auto">
         
         <nav class="flex mb-6 text-sm text-slate-500 font-medium">
-            <a href="" class="hover:text-indigo-600 transition-colors">Results</a>
+            <a href="{% url 'result' %}" class="hover:text-indigo-600 transition-colors">Results</a>
             <span class="mx-2 text-slate-300">/</span>
             <span class="text-indigo-600">Semester {{ semester.number }}</span>
         </nav>
@@ -63,7 +63,7 @@
                                 {{ enrollment.gpa|floatformat:2|default:"0.00" }}
                             </td>
                             <td class="px-6 py-6 text-right">
-                                <a href="" 
+                                <a href="{% url 'marks_details' enrollment_id=enrollment.id %}" 
                                    class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all active:scale-95">
                                     Details <i class="fas fa-arrow-right text-[10px]"></i>
                                 </a>
