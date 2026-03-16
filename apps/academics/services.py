@@ -188,7 +188,6 @@ def grade_per_semester(student, semester):
     for enrollment in enrollments:
         grade_points += enrollment.gpa*enrollment.course_by_section.course.credit_hours
         total_semester_credit_hours += enrollment.course_by_section.course.credit_hours
-    print(grade_points, total_semester_credit_hours)
     sgpa = grade_points/total_semester_credit_hours
     return sgpa
 
