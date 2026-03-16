@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib import messages
-from .services import enroll_student, unenroll_student, add_to_cart
+from .services import enroll_student, unenroll_student, add_to_cart, grade_per_course, grade_per_semester
 from ..finance.services import  calculate_cart_total,generate_fee_voucher
 from .services import remove_course_from_cart, grade_per_course, \
                         calculate_overall_attendance_percentage, calculate_course_attendance
@@ -12,7 +12,8 @@ from .permissions import student_only, instructor_only
 import stripe 
 from django.conf import settings
 from django.utils import timezone
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
+from ..finance.utils.FeeVoucher import render_to_pdf
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -189,4 +190,59 @@ def enrolled_class_details_page_view(request, enrollment_id):
 @student_only
 @login_required
 def results_page_view(request):
-    return render(request,'temps/academics/pages/StudentDashboard/Results.html',{})
+    student = request.user.student_profile
+    semesters = Semester.objects.filter(enrollments__student=student).distinct()
+    semesters_with_gpa = []
+    for sem in semesters:
+        sem.__setattr__('sgpa',grade_per_semester(student, sem))
+        semesters_with_gpa.append(sem)
+
+    return render(request,'temps/academics/pages/StudentDashboard/Results.html',{'semesters':semesters_with_gpa,'page_name':'Results'})
+
+def results_by_semester_page_view(request, semester_id):
+    student = request.user.student_profile
+    try:
+        semester = get_object_or_404(Semester, id=semester_id)
+    except Exception as e:
+        messages.error(request, str(e))
+        return redirect("result")
+    enrollments = semester.active_enrollments.filter(student=student)
+    semester_gpa = grade_per_semester(student, semester)
+    total_sem_credits = semester.active_enrollments.aggregate(total_credits=Sum('course_by_section__course__credit_hours'))['total_credits'] or 0
+    return render(request, 'temps/academics/pages/StudentDashboard/ResultBySemester.html',{'semester':semester,'enrollments':enrollments,'semester_gpa':semester_gpa,'total_sem_credits':total_sem_credits, 'page_name':'Results'})
+
+def marks_details_page_view(request, enrollment_id):
+    try: 
+        enrollment = get_object_or_404(Enrollment, id=enrollment_id)
+    except Exception as e:
+        messages.error(request, str(e))
+        return redirect('result')
+    
+    mark_entries = enrollment.marks.filter(is_locked=True)
+    assignment = enrollment.course_by_section.assignments.get(semester=enrollment.semester, course_by_section=enrollment.course_by_section)
+    return render(request, "temps/academics/pages/StudentDashboard/MarksDetails.html",{'mark_entries':mark_entries,'enrollment':enrollment,'assignment':assignment,'page_name':'Results'})
+
+
+@login_required
+@student_only
+def download_transcript(request):
+    student = request.user.student_profile
+    semesters = Semester.objects.filter(enrollments__student=student,enrollments__status='active').distinct()
+    for semester in semesters:
+        semester.course_results = semester.enrollments.filter(student=student, status='active', marks__is_locked=True).distinct()
+
+    context = {
+        'user': request.user,
+        'semesters':semesters,
+        'total_credits':student.earned_credits,
+        'cgpa':student.calculate_cgpa()
+    }
+    pdf = render_to_pdf("temps/academics/pdfs/transcript_template.html", context)
+    if pdf:
+        response = HttpResponse(pdf,content_type='application/pdf')
+        filename = f'{request.user.get_full_name()}\'s transcript(Unofficial)'
+        content = f'attachment; filename:{filename};'
+        response['content-disposition'] = content
+        return response
+    messages.error(request,"Couldn't download transcript")
+    return redirect('result')

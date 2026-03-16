@@ -91,7 +91,9 @@ class Semester(models.Model):
             return timezone.now().date() > self.fee_payment_deadline
         return False
 
-        
+    @property
+    def active_enrollments(self):
+        return self.enrollments.filter(status='active')
     def clean(self):
         super().clean()
 

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page { size: A4; margin: 2cm; }
+        body { font-family: 'Times New Roman', serif; color: #333; line-height: 1.4; }
+        
+        /* Official Header */
+        .header { text-align: center; border-bottom: 2px solid #1a2a6c; padding-bottom: 10px; margin-bottom: 20px; }
+        .university-name { font-size: 24pt; font-weight: bold; color: #1a2a6c; text-transform: uppercase; }
+        .document-title { font-size: 14pt; font-weight: bold; margin-top: 5px; }
+
+        /* Student Info Grid */
+        .info-table { width: 100%; margin-bottom: 30px; font-size: 10pt; }
+        .info-table td { padding: 5px 0; }
+        .label { font-weight: bold; width: 120px; }
+
+        /* Results Table */
+        .results-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 9pt; }
+        .results-table th { background-color: #f0f4f8; border: 1px solid #ccc; padding: 8px; text-align: left; }
+        .results-table td { border: 1px solid #ccc; padding: 8px; }
+        
+        .semester-header { background-color: #e2e8f0; font-weight: bold; text-align: center; }
+
+        /* Summary Box */
+        .summary-box { float: right; width: 200px; border: 1px solid #1a2a6c; padding: 10px; margin-top: 20px; }
+        .summary-row { display: flex; justify-content: space-between; font-weight: bold; }
+        
+        /* Footer/Signatures */
+        .footer { margin-top: 80px; width: 100%; }
+        .signature-line { border-top: 1px solid #000; width: 200px; text-align: center; font-size: 9pt; padding-top: 5px; }
+        .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 60pt; color: rgba(0,0,0,0.03); z-index: -1; }
+    </style>
+</head>
+<body>
+
+    <div class="watermark">OFFICIAL TRANSCRIPT</div>
+
+    <div class="header">
+        <div class="university-name">University of Engineering & Technology</div>
+        <div class="document-title">OFFICIAL ACADEMIC TRANSCRIPT</div>
+    </div>
+
+    <table class="info-table">
+        <tr>
+            <td class="label">Student Name:</td>
+            <td>{{ user.get_full_name|upper }}</td>
+            <td class="label">Roll Number:</td>
+            <td>{{user.student_profile.id }}</td>
+        </tr>
+        <tr>
+            <td class="label">Degree:</td>
+            <td>BS Computer Science</td>
+            <td class="label">Date of Issue:</td>
+            <td>{% now "F j, Y" %}</td>
+        </tr>
+    </table>
+
+    <table class="results-table">
+        <thead>
+            <tr>
+                <th>Course Code</th>
+                <th>Course Title</th>
+                <th style="text-align: center;">Cr. Hrs</th>
+                <th style="text-align: center;">Grade</th>
+                <th style="text-align: center;">GPA</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for semester in semesters %}
+                <tr class="semester-header">
+                    <td colspan="5">SEMESTER {{semester.get_sem}}</td>
+                </tr>
+                {% for enrollment in semester.course_results %}
+                <tr>
+                    <td>{{ enrollment.course_by_section.course.code }}</td>
+                    <td>{{ enrollment.course_by_section.course.name }}</td>
+                    <td style="text-align: center;">{{ enrollment.course_by_section.course.credit_hours }}</td>
+                    <td style="text-align: center;">{{ enrollment.grade|default:"-" }}</td>
+                    <td style="text-align: center;">{{ enrollment.gpa|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="summary-box">
+        <div class="summary-row" style="color: #1a2a6c; font-size: 1.2em; margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;">
+            <span>TOTAL CREDITS:</span>
+            <span>{{ total_credits }}</span>
+        </div>
+        <div class="summary-row" style="color: #1a2a6c; font-size: 1.2em; margin-top: 5px; border-top: 1px solid #ccc; padding-top: 5px;">
+            <span>CGPA:</span>
+            <span>{{ cgpa|floatformat:2 }}</span>
+        </div>
+    </div>
+
+    <div class="footer">
+        <table style="width: 100%;">
+            <tr>
+                <td>
+                    <div class="signature-line">Controller of Examinations</div>
+                </td>
+                <td style="text-align: right;">
+                    <div class="signature-line" style="float: right;">Registrar Signature</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+</body>
+</html>

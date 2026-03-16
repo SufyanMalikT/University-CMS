@@ -1,0 +1,90 @@
+{% extends 'BaseStudentDashboard.html' %}
+
+{% block main_section %}
+<div class="min-h-screen p-6 md:p-10 max-w-4xl mx-auto">
+        
+        <nav class="flex mb-6 text-sm text-slate-500 font-medium">
+            <a href="" class="hover:text-indigo-600 transition-colors">Results</a>
+            <span class="mx-2 text-slate-300">/</span>
+            <a href="javascript:history.back()" class="hover:text-indigo-600 transition-colors">Semester {{ enrollment.semester.number }}</a>
+            <span class="mx-2 text-slate-300">/</span>
+            <span class="text-indigo-600">Marks Detail</span>
+        </nav>
+
+        <header class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm mb-8 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-6">
+                <div class="text-right">
+                    <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Total Weightage</p>
+                    <p class="text-4xl font-black text-indigo-600">{{ enrollment.percentage|floatformat:0 }}%</p>
+                </div>
+            </div>
+
+            <div class="relative z-10">
+                <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider">
+                    {{ enrollment.course_by_section.course.course_code }}
+                </span>
+                <h1 class="text-3xl font-black text-slate-800 mt-3 leading-tight">
+                    {{ enrollment.course_by_section.course.name }}
+                </h1>
+                <div class="flex gap-4 mt-4 text-sm text-slate-500 font-medium">
+                    <span><i class="far fa-calendar-alt mr-1"></i> {{ enrollment.semester.session }}</span>
+                    <span><i class="far fa-user mr-1"></i> {{ assignment.instructor.user.get_full_name }}</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="space-y-4">
+            <h2 class="text-lg font-bold text-slate-800 px-2 flex items-center gap-2">
+                <i class="fas fa-chart-pie text-indigo-500"></i>
+                Component Breakdown
+            </h2>
+
+            {% for entry in mark_entries %}
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm transition-all hover:shadow-md">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center text-indigo-600">
+                            {% if entry.category == 'Final' %}
+                                <i class="fas fa-file-signature text-xl"></i>
+                            {% elif entry.category == 'Midterm' %}
+                                <i class="fas fa-file-alt text-xl"></i>
+                            {% else %}
+                                <i class="fas fa-tasks text-xl"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-800">{{ entry.category }}</h3>
+                            <p class="text-xs text-slate-400">Locked on {{ entry.updated_at|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-8 justify-between md:justify-end flex-1 md:flex-none">
+                        <div class="text-right">
+                            <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Obtained</p>
+                            <p class="font-black text-slate-800">{{ entry.obtained_marks }} <span class="text-slate-300 font-light">/ {{ entry.total_marks }}</span></p>
+                        </div>
+                        
+                        <div class="w-24 h-2 bg-slate-100 rounded-full overflow-hidden relative">
+                            <div class="h-full bg-indigo-500 rounded-full" style="width: {% widthratio entry.obtained_marks entry.total_marks 100 %}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="bg-white rounded-3xl p-12 text-center border-2 border-dashed border-slate-200">
+                <i class="fas fa-lock text-slate-300 text-4xl mb-4"></i>
+                <p class="text-slate-500 italic">Marks for this course haven't been finalized yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <footer class="mt-12 p-6 bg-indigo-50 rounded-2xl border border-indigo-100">
+            <div class="flex items-start gap-4">
+                <i class="fas fa-info-circle text-indigo-400 mt-1"></i>
+                <p class="text-sm text-indigo-800 leading-relaxed">
+                    <strong>Note:</strong> These marks are finalized by the department. If you find any discrepancies, please contact the course instructor within 7 days of the result declaration.
+                </p>
+            </div>
+        </footer>
+    </div>
+{% endblock %}

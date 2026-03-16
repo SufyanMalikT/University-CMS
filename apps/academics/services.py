@@ -178,6 +178,20 @@ def grade_per_course(student, course_by_section):
 
     return weight
 
+def grade_per_semester(student, semester):
+    enrollments = semester.enrollments.filter(student=student,status='active',marks__is_locked=True)
+    
+    if not enrollments.exists():
+        return 0
+    total_semester_credit_hours = 0
+    grade_points = 0
+    for enrollment in enrollments:
+        grade_points += enrollment.gpa*enrollment.course_by_section.course.credit_hours
+        total_semester_credit_hours += enrollment.course_by_section.course.credit_hours
+    print(grade_points, total_semester_credit_hours)
+    sgpa = grade_points/total_semester_credit_hours
+    return sgpa
+
 def calculate_overall_attendance_percentage(student):
     # 1. Get all attendance records for THIS student across all their courses
     attendance_stats = AttendanceEntry.objects.filter(
