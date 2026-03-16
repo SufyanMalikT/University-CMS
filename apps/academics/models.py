@@ -8,23 +8,33 @@ import uuid
 # Create your models here.
 
 
-    
+class Building(models.Model):
+    name = models.CharField(max_length=30)
+    location = models.CharField(max_length=180)
+
+    def __str__(self):
+        return self.name
 
 class Department(models.Model):
-    buildings = (
-        ('Talpur House','Talpur House'),
-        ('Main Building','Main Building'),
-        ('IT Tower','IT Tower')
-    )
     name = models.CharField(max_length=55)
-    building = models.CharField(max_length=25,choices=buildings ,default='Main Building')
     created_at = models.DateTimeField(auto_now_add=True)
+    building = models.ForeignKey(Building, related_name='departments', on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.name} - {self.building}"
     
+class Room(models.Model):
+    room_choices = (
+        ('lab','Lab'),
+        ('classroom','Classroom'),
+        ('office','Office'),
+    )
+    name = models.CharField(max_length=10)
+    department = models.ForeignKey(Department, related_name='rooms', on_delete=models.CASCADE)
+    room_type = models.CharField(max_length=15, choices=room_choices, default='classroom')
 
-
+    def __str__(self):
+        return f"{self.room_type} - {self.name}"
 
 
 class Course(models.Model):
@@ -388,7 +398,7 @@ class ClassSchedule(models.Model):
         ('sunday', 'Sunday'),
     ) 
     course_by_section = models.ForeignKey(CourseBySection, related_name='schedules', on_delete=models.CASCADE)
-    semester = models.ForeignKey(Semester, related_name='schudeles', on_delete=models.CASCADE)
+    semester = models.ForeignKey(Semester, related_name='schedules', on_delete=models.CASCADE)
     day_of_the_week = models.CharField(max_length=20, choices=weekday_choices)
     start_time = models.TimeField()
     end_time = models.TimeField()
@@ -448,3 +458,16 @@ class AttendanceEntry(models.Model):
 
     def __str__(self):
         return f"{self.student.user.get_full_name()} - {self.session.date}"
+
+
+class DateSheetEntry(models.Model):
+    course_by_section = models.OneToOneField(CourseBySection, on_delete=models.CASCADE)
+    exam_date = models.DateField()
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    room = models.ForeignKey(Room, related_name='exam_dates', on_delete=models.CASCADE)
+    
+    class Meta:
+        ordering = ['exam_date', 'start_time']
+    def __str__(self):
+        return f"{self.course_by_section.course.name} - {self.room.name} - {self.exam_date}" 
