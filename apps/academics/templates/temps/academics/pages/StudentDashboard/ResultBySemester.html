@@ -1,6 +1,9 @@
 {% extends 'BaseStudentDashboard.html' %}
 
 {% block main_section %}
+    {% if messages %}
+    {% include 'comps/messagebanner.html'%}
+    {% endif %}
     <div class="min-h-screen p-6 md:p-10 max-w-7xl mx-auto">
         
         <nav class="flex mb-6 text-sm text-slate-500 font-medium">

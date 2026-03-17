@@ -1,0 +1,59 @@
+{% extends 'BaseStudentDashboard.html' %}
+
+{% block main_section %}
+    {% if messages %}
+    {% include 'comps/messagebanner.html'%}
+    {% endif %}
+<div class="max-w-4xl mx-auto py-10 px-4">
+    <div class="text-center mb-10">
+        <h1 class="text-3xl font-bold text-slate-900">Examination Admit Card</h1>
+        <p class="text-slate-500 mt-2">Generate your official entry permit for the {{ semester.get_sem }} {{exam_type}} Examinations.</p>
+    </div>
+
+    {% if semester.is_admit_card_published %}
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+        <div class="p-8 md:p-12 flex flex-col md:flex-row gap-8 items-center">
+            <div class="w-32 h-32 bg-indigo-50 rounded-2xl flex items-center justify-center">
+                <i class="fas fa-id-card text-indigo-500 text-5xl"></i>
+            </div>
+
+            <div class="flex-1 text-center md:text-left">
+                <h3 class="text-xl font-bold text-slate-900">Your Admit Card is Ready</h3>
+                <p class="text-slate-500 text-sm mt-1">Status: <span class="text-emerald-600 font-bold uppercase text-xs">Verified & Active</span></p>
+                
+                <div class="mt-4 grid grid-cols-2 gap-4">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <p class="text-[10px] uppercase font-bold text-slate-400">Roll Number</p>
+                        <p class="text-sm font-bold text-slate-800">{{ student.roll_no }}</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <p class="text-[10px] uppercase font-bold text-slate-400">Total Exams</p>
+                        <p class="text-sm font-bold text-slate-800">{{ enrollments.count }} Courses</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full md:w-auto">
+                <a href="{% url 'download_admit_card' %}" class="w-full inline-flex items-center justify-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200">
+                    <i class="fas fa-file-pdf"></i>
+                    Download PDF
+                </a>
+            </div>
+        </div>
+        
+        <div class="bg-slate-50 px-8 py-4 border-t border-slate-100 flex items-center gap-2">
+            <i class="fas fa-exclamation-triangle text-amber-500 text-xs"></i>
+            <p class="text-[11px] text-slate-500 italic">Please Note: You must present a printed copy of this card to enter the examination hall.</p>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200 p-20 text-center">
+        <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+            <i class="fas fa-lock text-slate-300 text-xl"></i>
+        </div>
+        <h3 class="text-slate-900 font-bold text-lg">Admit Cards Not Yet Released</h3>
+        <p class="text-slate-500 text-sm max-w-sm mx-auto mt-2">The Examination Department has not released the Admit Cards for {{ semester.get_sem }} yet. Please check back later.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

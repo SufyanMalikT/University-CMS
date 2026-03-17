@@ -1,7 +1,9 @@
 {% extends 'BaseStudentDashboard.html' %}
 
 {% block main_section %}
-
+    {% if messages %}
+    {% include 'comps/messagebanner.html'%}
+    {% endif %}
 {% if current_semester.is_datesheet_published %}
 
 <div class="max-w-6xl mx-auto py-8 px-4">

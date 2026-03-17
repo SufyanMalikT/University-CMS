@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @page { size: A4; margin: 1cm; }
+        body { font-family: 'Arial', sans-serif; }
+        .card-container { border: 2px solid #000; padding: 20px; position: relative; }
+        .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+        .uni-name { font-size: 18pt; font-weight: bold; }
+        
+        .photo-box { position: absolute; top: 100px; right: 30px; width: 100px; height: 120px; border: 1px solid #ccc; text-align: center; font-size: 8pt; color: #666; padding-top: 40px; }
+        
+        .student-details { margin-top: 10px; font-size: 11pt; }
+        .student-details td { padding: 5px 0; }
+        .label { font-weight: bold; width: 130px; }
+
+        .exam-table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+        .exam-table th { border: 1px solid #000; background: #eee; padding: 8px; font-size: 10pt; }
+        .exam-table td { width:20%; border: 1px solid #000; padding: 8px; font-size: 9pt; text-align: center;}
+        
+        .footer { margin-top: 50px; }
+        .signature { float: right; border-top: 1px solid #000; width: 200px; text-align: center; padding-top: 5px; font-size: 10pt; }
+        .qr-placeholder { float: left; width: 80px; height: 80px; border: 1px solid #000; padding: 5px; font-size: 8pt; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="card-container">
+        <div class="header">
+            <div class="uni-name">University CMS Official Admit Card</div>
+            <div>{{ semester.get_sem }} - Final Examinations</div>
+        </div>
+
+        <div class="photo-box">Passport Size Photo Here</div>
+
+        <table class="student-details">
+            <tr><td class="label">Roll Number:</td><td style="font-size: 14pt; font-weight: bold;">{{ student.roll_no }}</td></tr>
+            <tr><td class="label">Student Name:</td><td>{{ student.user.get_full_name|upper }}</td></tr>
+            <tr><td class="label">Father's Name:</td><td>{{ student.father_name|default:"N/A" }}</td></tr>
+            <tr><td class="label">Program:</td><td>{{ student.department.name }}</td></tr>
+        </table>
+
+        <table class="exam-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Code</th>
+                    <th>Course Title</th>
+                    <th>Venue</th>
+                    <th>Invigilator Sig.</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for enrollment in enrollments %}
+                <tr>
+                    <td>{{ enrollment.course_by_section.datesheet_entries.first.exam_date|date:"d-m-Y" }}</td>
+                    <td>{{ enrollment.course_by_section.course.course_code }}</td>
+                    <td style="text-align: left;">{{ enrollment.course_by_section.course.name }}</td>
+                    <td>{{ enrollment.course_by_section.datesheet_entries.first.room.name }}</td>
+                    <td></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="footer">
+            <div class="qr-placeholder">VERIFICATION<br>QR CODE</div>
+            <div class="signature">Controller of Examinations</div>
+        </div>
+    </div>
+</body>
+</html>

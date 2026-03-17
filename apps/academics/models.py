@@ -467,7 +467,7 @@ class DateSheetEntry(models.Model):
         ('Midterm', 'Midterm Examination'),
         ('Finalterm', 'Final Examination'),
     )
-    course_by_section = models.ForeignKey(CourseBySection, on_delete=models.CASCADE)
+    course_by_section = models.ForeignKey(CourseBySection, related_name='datesheet_entries', on_delete=models.CASCADE)
     exam_type = models.CharField(max_length=20, choices=EXAM_TYPES)
     exam_date = models.DateField()
     start_time = models.TimeField()

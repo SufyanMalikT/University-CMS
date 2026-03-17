@@ -1,7 +1,9 @@
 {% extends 'BaseStudentDashboard.html'%}
 
 {% block main_section %}
-
+    {% if messages %}
+    {% include 'comps/messagebanner.html'%}
+    {% endif %}
     <div class="min-h-screen p-6 md:p-10 max-w-7xl mx-auto">
         
         <header class="relative overflow-hidden rounded-3xl bg-indigo-900 p-8 text-white shadow-2xl mb-12">

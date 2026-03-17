@@ -46,6 +46,7 @@ def actual_download_fee_voucher(request,voucher_id):
         response['content-disposition'] = content
         return response
     return HttpResponse("Error generating pdf", status=400)
+
 @student_only
 @login_required
 def view_fee_voucher(request, voucher_id):

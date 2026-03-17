@@ -282,3 +282,46 @@ def download_datesheet(request):
         return response
     messages.error(request, 'Couldn\'t download Datesheet')
     return redirect('date_sheet')
+
+
+def admit_card_page_view(request):
+    student = request.user.student_profile
+    semester = Semester.latest_semester()
+    enrollments = student.enrollments.filter(semester=semester, status='active')
+    entries = DateSheetEntry.objects.filter(
+        exam_date__gt = timezone.now().date(),
+        course_by_section__enrollments__student=student,
+        course_by_section__enrollments__status='active',
+        semester=Semester.latest_semester()
+    )
+    exam_type = None
+    if entries.exists():
+        if entries.first().exam_type == 'Midterm':
+             exam_type = 'Mid Term'
+        else:
+            exam_type = 'Final Term'
+
+
+    return render(request,'temps/academics/pages/StudentDashboard/AdmitCard.html',{'student':student,'semester':semester,'enrollments':enrollments,'exam_type':exam_type,'page_name':'Admit-Card'})
+
+
+def download_admit_card(request):
+    student = request.user.student_profile
+    semester = Semester.latest_semester()
+    enrollments = student.enrollments.filter(status='active',semester=semester)
+
+    context = {
+        'student':student, 
+        'semester':semester,
+        'enrollments':enrollments
+    }
+    pdf = render_to_pdf('temps/academics/pdfs/admit_card_template.html', context)
+
+    if pdf:
+        response = HttpResponse(pdf, content_type='application/pdf')
+        filename = f"{student.roll_no}_AdmitCard"
+        content = f"atachment; filename:{filename}"
+        response['content-dispostion'] = content
+        return response
+    messages.error(request, "Couldn't download Admit Card")
+    return redirect('admit_card')

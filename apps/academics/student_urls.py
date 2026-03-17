@@ -3,7 +3,8 @@ from .views import home_view, student_dashboard_view, student_add_courses_view, 
                     student_course_review_page, student_enrolled_course_detail_page_view, student_course_by_semester_page_view, \
                     student_course_details_view, add_to_cart_view, cart_page_view, \
                     remove_course_from_cart_view, student_drop_course_page, results_page_view, results_by_semester_page_view, \
-                    marks_details_page_view, download_transcript, date_sheet_page_view, download_datesheet
+                    marks_details_page_view, download_transcript, date_sheet_page_view, download_datesheet,\
+                    admit_card_page_view, download_admit_card
 
 urlpatterns = [
     path('dashboard/',student_dashboard_view, name='student_dashboard'),
@@ -25,5 +26,7 @@ urlpatterns = [
     path('dashboard/examinations/result/transcript/download/',download_transcript, name='download_transcript'),
     path('dashboard/examinations/date-sheet/', date_sheet_page_view, name='date_sheet'),
     path('dashboard/examinations/date-sheet/download/', download_datesheet, name='download_datesheet'),
+    path('dashboard/examinations/admit-card/', admit_card_page_view, name='admit_card'),
+    path('dashboard/examinations/admit-card/download/', download_admit_card, name='download_admit_card'),
 
 ]
