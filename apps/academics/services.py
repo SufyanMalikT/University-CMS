@@ -71,8 +71,8 @@ def enroll_student(student, course_code_by_section):
     obj, created = Enrollment.objects.get_or_create(
         course_by_section=course_by_section, 
         semester=semester, student=student,
-        fee_amount=fee_per_credit.amount*course_by_section.course.credit_hours,
-        exam_fee=exam_fee.amount,
+        fee_amount=(fee_per_credit or 100)*course_by_section.course.credit_hours,
+        exam_fee=(exam_fee or 30),
         status='active'
     )
 

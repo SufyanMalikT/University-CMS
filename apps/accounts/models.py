@@ -39,6 +39,7 @@ class CustomUser(AbstractUser):
 class Student(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL,related_name='student_profile',on_delete=models.CASCADE)
     cached_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    roll_no = models.CharField(max_length=20, unique=True)
 
 
     # The Repair Function

@@ -68,6 +68,8 @@ class Semester(models.Model):
     fee_payment_deadline = models.DateField(null=True, blank=True)
     voucher_validity_days = models.PositiveSmallIntegerField(default=7)
     max_credit_hours = models.PositiveSmallIntegerField(null=True, blank=True)
+    is_datesheet_published = models.BooleanField(default=False)
+    is_admit_card_published = models.BooleanField(default=False)
 
     @property
     def get_sem(self):
@@ -461,13 +463,21 @@ class AttendanceEntry(models.Model):
 
 
 class DateSheetEntry(models.Model):
-    course_by_section = models.OneToOneField(CourseBySection, on_delete=models.CASCADE)
+    EXAM_TYPES = (
+        ('Midterm', 'Midterm Examination'),
+        ('Finalterm', 'Final Examination'),
+    )
+    course_by_section = models.ForeignKey(CourseBySection, on_delete=models.CASCADE)
+    exam_type = models.CharField(max_length=20, choices=EXAM_TYPES)
     exam_date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
     room = models.ForeignKey(Room, related_name='exam_dates', on_delete=models.CASCADE)
+    semester = models.ForeignKey(Semester, related_name='datesheet_entries', on_delete=models.CASCADE)
     
     class Meta:
+        # This prevents scheduling the same exam type for the same course twice
+        unique_together = ('course_by_section', 'exam_type')
         ordering = ['exam_date', 'start_time']
     def __str__(self):
         return f"{self.course_by_section.course.name} - {self.room.name} - {self.exam_date}" 

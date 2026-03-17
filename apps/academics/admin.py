@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import  Semester, Enrollment, Department, Course, \
-                    CourseAssignment, CourseBySection, Section, MarkEntry
+                    CourseAssignment, CourseBySection, Section, MarkEntry, Building, Room
 # Register your models here.
 
 admin.site.register(Semester)
@@ -10,6 +10,9 @@ admin.site.register(CourseAssignment)
 admin.site.register(CourseBySection)
 admin.site.register(Section)
 admin.site.register(MarkEntry)
+admin.site.register(Building)
+admin.site.register(Room)
+
 
 
 @admin.register(Enrollment)

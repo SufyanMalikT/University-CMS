@@ -6,7 +6,7 @@ from ..finance.services import  calculate_cart_total,generate_fee_voucher
 from .services import remove_course_from_cart, grade_per_course, \
                         calculate_overall_attendance_percentage, calculate_course_attendance
 from django.contrib.auth.decorators import login_required
-from .models import Course,CourseBySection, Semester, Enrollment
+from .models import Course,CourseBySection, Semester, Enrollment, DateSheetEntry
 from ..finance.models import VoucherItem, FeeVoucher
 from .permissions import student_only, instructor_only
 import stripe 
@@ -246,3 +246,39 @@ def download_transcript(request):
         return response
     messages.error(request,"Couldn't download transcript")
     return redirect('result')
+
+def date_sheet_page_view(request):
+    student = request.user.student_profile
+    datesheet_entries = DateSheetEntry.objects.filter(
+        exam_date__gt = timezone.now().date(),
+        course_by_section__enrollments__student=student,
+        course_by_section__enrollments__status='active',
+        semester=Semester.latest_semester()
+    )
+    return render(request, 'temps/academics/pages/StudentDashboard/DateSheet.html',{'datesheet_entries':datesheet_entries, 'current_semester': Semester.latest_semester(),'page_name':'Datesheet'})
+
+def download_datesheet(request):
+    student = request.user.student_profile
+    datesheet_entries = DateSheetEntry.objects.filter(
+        exam_date__gt = timezone.now().date(),
+        course_by_section__enrollments__student=student,
+        course_by_section__enrollments__status='active',
+        semester=Semester.latest_semester()
+    )
+
+    context = {
+        'student':student,
+        'datesheet':datesheet_entries,
+        'semester':Semester.latest_semester()
+    } 
+
+    pdf = render_to_pdf('temps/academics/pdfs/datesheet_template.html', context)
+
+    if pdf:
+        response = HttpResponse(pdf, content_type='application/pdf')
+        filename = f"{datesheet_entries[0].exam_type}_DateSheet"
+        content = f'attachment; filename={filename};'
+        response['content-dispostion'] = content
+        return response
+    messages.error(request, 'Couldn\'t download Datesheet')
+    return redirect('date_sheet')
