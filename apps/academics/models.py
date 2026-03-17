@@ -405,7 +405,8 @@ class ClassSchedule(models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
     created_at = models.DateTimeField(auto_now_add=True)
-
+    room = models.ForeignKey(Room, related_name='schedules', on_delete=models.CASCADE)
+    
     def clean(self):
         super().clean()
         if self.start_time > self.end_time:

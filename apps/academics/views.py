@@ -7,14 +7,13 @@ from .services import remove_course_from_cart, grade_per_course, \
                         calculate_overall_attendance_percentage, calculate_course_attendance
 from django.contrib.auth.decorators import login_required
 from .models import Course,CourseBySection, Semester, Enrollment, DateSheetEntry
-from ..finance.models import VoucherItem, FeeVoucher
+from ..finance.models import VoucherItem, FeeVoucher, FeeConfiguration
 from .permissions import student_only, instructor_only
 import stripe 
 from django.conf import settings
 from django.utils import timezone
 from django.db.models import Count, Q, Sum
 from ..finance.utils.FeeVoucher import render_to_pdf
-
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def home_view(request):
@@ -56,7 +55,7 @@ def student_add_courses_page_view(request):
             return redirect('add_classes')
 
     
-    return render(request, 'temps/academics/pages/StudentDashboard/AddClasses.html',{'course':course_by_section,'course_assignment_for_current_sem':course_by_section_assignment, 'page_name':'Add Classes'})
+    return render(request, 'temps/academics/pages/StudentDashboard/My Academics/AddClasses.html',{'course':course_by_section,'course_assignment_for_current_sem':course_by_section_assignment, 'page_name':'Add Classes'})
 
 @student_only
 @login_required
@@ -71,7 +70,9 @@ def student_add_courses_view(request, course_code_by_section):
 
 def student_course_details_view(request, course_code_by_section):
     course_by_section = get_object_or_404(CourseBySection, course_code_by_section=course_code_by_section)
-    return render(request, 'temps/academics/pages/StudentDashboard/CourseDetails.html',{'course':course_by_section})
+    schedules = course_by_section.schedules.filter(semester=Semester.latest_semester())
+    assignment = course_by_section.assignments.filter(semester=Semester.latest_semester()).first()
+    return render(request, 'temps/academics/pages/StudentDashboard/My Academics/CourseDetails.html',{'course':course_by_section,'schedules':schedules,'assignment':assignment,'page_name':'Course-Detail'})
 @student_only
 @login_required
 def student_course_review_page(request):
@@ -87,7 +88,7 @@ def student_course_review_page(request):
             filter=Q(enrollments__student=student,enrollments__status='active')
         )
     ).distinct().order_by('-start_date')
-    return render(request, 'temps/academics/pages/StudentDashboard/ReviewClassesBySemester.html',{'semesters':semesters,'page_name':'Review Classes'})
+    return render(request, 'temps/academics/pages/StudentDashboard/My Academics/ReviewClassesBySemester.html',{'semesters':semesters,'page_name':'Review Classes'})
 
 @student_only
 @login_required
@@ -102,7 +103,7 @@ def student_course_by_semester_page_view(request, semester_id):
                 enrollment.__setattr__('assignment',assignment)
                 enrollments.append(enrollment)
                 print(enrollment.id)
-    return render(request, 'temps/academics/pages/StudentDashboard/SemesterCourses.html',{'enrollments':enrollments,'semester':semester,'assignments':assignments, 'page_name':'Review Classes'})
+    return render(request, 'temps/academics/pages/StudentDashboard/My Academics/SemesterCourses.html',{'enrollments':enrollments,'semester':semester,'assignments':assignments, 'page_name':'Review Classes'})
 
 @student_only
 @login_required
@@ -112,7 +113,7 @@ def student_enrolled_course_detail_page_view(request, enrollment_id):
     assignment = get_object_or_404(enrollment.course_by_section.assignments,semester=enrollment.semester)
     marks = enrollment.marks.all()
     attendance = calculate_course_attendance(student, enrollment.course_by_section)
-    return render(request, 'temps/academics/pages/StudentDashboard/EnrolledCourseDetails.html',{'enrollment':enrollment,'assignment':assignment, 'attendance':attendance,'page_name':'Enrolled Course Details'})
+    return render(request, 'temps/academics/pages/StudentDashboard/My Academics/EnrolledCourseDetails.html',{'enrollment':enrollment,'assignment':assignment, 'attendance':attendance,'page_name':'Enrolled Course Details'})
 
 @student_only
 @login_required
@@ -132,7 +133,7 @@ def student_drop_course_page(request):
             return redirect('drop_course')
         messages.error(request, "coundn't find the course to drop")
         return redirect('drop_course')
-    return render(request, 'temps/academics/pages/StudentDashboard/DropClasses.html',{'semester':semester,'enrollments':enrollments})
+    return render(request, 'temps/academics/pages/StudentDashboard/My Academics/DropClasses.html',{'semester':semester,'enrollments':enrollments})
     
 @student_only
 @login_required
@@ -163,7 +164,7 @@ def cart_page_view(request):
         except Exception as e:
             messages.error(request, str(e))
             return redirect('cart')
-    return render(request, 'temps/academics/pages/StudentDashboard/Cart.html',{ 'cart_total':cart_total,'unpaid_voucher':unpaid_voucher,'page_name':'Your Cart'})
+    return render(request, 'temps/academics/pages/StudentDashboard/My Academics/Cart.html',{ 'cart_total':cart_total,'unpaid_voucher':unpaid_voucher,'page_name':'Your Cart'})
 
 @student_only
 @login_required
@@ -177,16 +178,6 @@ def remove_course_from_cart_view(request, item_id):
     return redirect('cart')
 
 
-
-
-
-@student_only 
-@login_required
-def enrolled_class_details_page_view(request, enrollment_id):
-    enrollment = get_object_or_404(Enrollment, id=enrollment_id)
-
-    return render(request, 'temps/academics/pages/StudentDashbaord/EnrolledClassDetials.html',{'enrollment':enrollment})
-
 @student_only
 @login_required
 def results_page_view(request):
@@ -197,7 +188,7 @@ def results_page_view(request):
         sem.__setattr__('sgpa',grade_per_semester(student, sem))
         semesters_with_gpa.append(sem)
 
-    return render(request,'temps/academics/pages/StudentDashboard/Results.html',{'semesters':semesters_with_gpa,'page_name':'Results'})
+    return render(request,'temps/academics/pages/StudentDashboard/Examinations/Results.html',{'semesters':semesters_with_gpa,'page_name':'Results'})
 
 def results_by_semester_page_view(request, semester_id):
     student = request.user.student_profile
@@ -209,7 +200,7 @@ def results_by_semester_page_view(request, semester_id):
     enrollments = semester.active_enrollments.filter(student=student)
     semester_gpa = grade_per_semester(student, semester)
     total_sem_credits = semester.active_enrollments.aggregate(total_credits=Sum('course_by_section__course__credit_hours'))['total_credits'] or 0
-    return render(request, 'temps/academics/pages/StudentDashboard/ResultBySemester.html',{'semester':semester,'enrollments':enrollments,'semester_gpa':semester_gpa,'total_sem_credits':total_sem_credits, 'page_name':'Results'})
+    return render(request, 'temps/academics/pages/StudentDashboard/Examinations/ResultBySemester.html',{'semester':semester,'enrollments':enrollments,'semester_gpa':semester_gpa,'total_sem_credits':total_sem_credits, 'page_name':'Results'})
 
 def marks_details_page_view(request, enrollment_id):
     try: 
@@ -220,7 +211,7 @@ def marks_details_page_view(request, enrollment_id):
     
     mark_entries = enrollment.marks.filter(is_locked=True)
     assignment = enrollment.course_by_section.assignments.get(semester=enrollment.semester, course_by_section=enrollment.course_by_section)
-    return render(request, "temps/academics/pages/StudentDashboard/MarksDetails.html",{'mark_entries':mark_entries,'enrollment':enrollment,'assignment':assignment,'page_name':'Results'})
+    return render(request, "temps/academics/pages/StudentDashboard/Examinations/MarksDetails.html",{'mark_entries':mark_entries,'enrollment':enrollment,'assignment':assignment,'page_name':'Results'})
 
 
 @login_required
@@ -255,7 +246,7 @@ def date_sheet_page_view(request):
         course_by_section__enrollments__status='active',
         semester=Semester.latest_semester()
     )
-    return render(request, 'temps/academics/pages/StudentDashboard/DateSheet.html',{'datesheet_entries':datesheet_entries, 'current_semester': Semester.latest_semester(),'page_name':'Datesheet'})
+    return render(request, 'temps/academics/pages/StudentDashboard/Examinations/DateSheet.html',{'datesheet_entries':datesheet_entries, 'current_semester': Semester.latest_semester(),'page_name':'Datesheet'})
 
 def download_datesheet(request):
     student = request.user.student_profile
@@ -302,7 +293,7 @@ def admit_card_page_view(request):
             exam_type = 'Final Term'
 
 
-    return render(request,'temps/academics/pages/StudentDashboard/AdmitCard.html',{'student':student,'semester':semester,'enrollments':enrollments,'exam_type':exam_type,'page_name':'Admit-Card'})
+    return render(request,'temps/academics/pages/StudentDashboard/Examinations/AdmitCard.html',{'student':student,'semester':semester,'enrollments':enrollments,'exam_type':exam_type,'page_name':'Admit-Card'})
 
 
 def download_admit_card(request):
