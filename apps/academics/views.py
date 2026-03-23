@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+import json
 from django.http import HttpResponse
 from django.contrib import messages
 from .services import enroll_student, unenroll_student, add_to_cart, grade_per_course, grade_per_semester
@@ -31,8 +32,17 @@ def home_view(request):
 @login_required
 @student_only
 def student_dashboard_view(request):
+    student = request.user.student_profile
     attendance_percentage = calculate_overall_attendance_percentage(request.user.student_profile)
-    return render(request, 'temps/academics/pages/StudentDashboard/Overview.html',{'page_name':'Overview','attendance_percentage':attendance_percentage})
+    semesters = Semester.objects.filter(enrollments__student=student,enrollments__status='active')
+    semester_names = []
+    sgpa = []
+    for sem in semesters:
+        semester_names.append(sem.get_sem)
+        sgpa.append(grade_per_semester(student,sem))
+    semester_names_json = json.dumps(semester_names)
+    sgpa_json = json.dumps(sgpa)
+    return render(request, 'temps/academics/pages/StudentDashboard/Overview.html',{'page_name':'Overview','label':semester_names,'sgpa':sgpa,'attendance_percentage':attendance_percentage})
 
 @student_only
 @login_required

@@ -21,12 +21,15 @@ def calculate_cart_total(student):
 
     # 4. Define fee rates with fallbacks
     credit_rate = rates.get('per_credit', Decimal('100.00'))
+    exam_fee_per_course = rates.get('exam_fee', Decimal('30.00'))
     reg_fee = Decimal('0.00')
     if not getattr(student, 'is_registration_fee_paid', False):
         reg_fee = rates.get('registration', Decimal('200.00'))
     
-    exam_fee = rates.get('exam_fee', Decimal('30.00'))
-    lib_fee = rates.get('library_fee', Decimal('50.00'))
+    lib_fee = Decimal('0.00')
+    if not is_student_lib_fee_paid_current_sem(student):
+        lib_fee = rates.get('library_fee', Decimal('50.00'))
+        
 
     total_course_fees = Decimal('0.00')
     items_breakdown = []
@@ -49,6 +52,8 @@ def calculate_cart_total(student):
             'credits': course.credit_hours,
             'fee': float(item_fee)
         })
+    exam_fee = exam_fee_per_course*len(items_breakdown)
+
 
     # 6. Final Calculation
     # New Bill = (Courses + Reg + Exam + Library)
@@ -123,52 +128,68 @@ def delete_unpaid_fee_voucher(student, voucher_id):
 
 @transaction.atomic 
 def fulfill_order(session, voucher_id):
-    # 1. Use select_for_update to lock the student record during the transaction
     voucher = get_object_or_404(FeeVoucher.objects.select_related('student'), id=voucher_id)
     
     if voucher.status == 'paid':
-        print(f"Voucher {voucher_id} is already marked as paid.")
         return
 
-    # 2. Extract amount (Stripe provides amount in cents)
-    amount_paid = Decimal(session.get('amount_total')) / 100
-
-    # 3. Update Balance & Voucher Status
-    # We subtract the actual payment from the student's debt
-    voucher.student.cached_balance -= amount_paid
-    voucher.student.save()
+    amount_total = Decimal(session.get('amount_total')) / 100
 
     voucher.status = 'paid'
     voucher.save()
 
-    # 4. Prevent Duplicate Payments
-    if Payment.objects.filter(voucher=voucher).exists():
-        print(f"Payment already exists for voucher {voucher_id}")
-        return
-    
-    # 5. Record the Payment
+    # 1. Record the Master Payment Record
     new_payment = Payment.objects.create(
         student=voucher.student,
         voucher=voucher,
-        amount_paid=amount_paid,
+        amount_paid=amount_total,
         stripe_charge_id=session.get('payment_intent')
     )
 
-    # 6. Update the students cached balance
-    voucher.student.cached_balance -= new_payment.amount_paid
+    # 2. SPLIT THE LEDGER (The key to your question)
+    
+    # Bucket A: Registration & Library (Service Charges)
+    fixed_fees = voucher.breakdown.get('fixed_fees', {})
+    reg_fee = Decimal(fixed_fees.get('registration', 0))
+    lib_fee = Decimal(fixed_fees.get('library_fee', 0))
+    total_service_charges = reg_fee + lib_fee
+
+    if total_service_charges > 0:
+        Ledger.objects.create(
+            student=voucher.student,
+            amount=-total_service_charges, # Negative because it clears the debt
+            transaction_type='service',    # This separates it from tuition!
+            description=f"Registration & Library Fees (Voucher #{voucher.id})",
+            payment_reference=new_payment
+        )
+
+    # Bucket B: Course/Tuition Fees
+    course_fees = Decimal(voucher.breakdown.get('total_course_fees', 0))
+    exam_fee = Decimal(fixed_fees.get('exam_fee', 0))
+    total_tuition_related = course_fees + exam_fee
+
+    if total_tuition_related > 0:
+        Ledger.objects.create(
+            student=voucher.student,
+            amount=-total_tuition_related, # Negative because it clears the debt
+            transaction_type='tuition',    # Standard tuition bucket
+            description=f"Course Tuition & Exam Fees (Voucher #{voucher.id})",
+            payment_reference=new_payment
+        )
+
+    # 3. Update Student Debt (The big picture)
+    # If positive = debt, we subtract the payment to reduce the debt.
+    voucher.student.cached_balance -= total_tuition_related
     voucher.student.save()
 
-    # 7. Creating a ledger
-    Ledger.objects.create(
-        student=voucher.student,
-        amount=-(amount_paid), # this is negative because we owe student the amount that they've paid until enrollment is done
-        transaction_type='payment',
-        payment_reference=new_payment
-    )
-    # 8. Finalize Enrollments
-    # Ensure enroll_student logic handles successful enrollment
+    # 4. Finalize Enrollments
     for item in voucher.voucher_items.all():
-        enroll_student(
-            voucher.student, 
-            item.course_by_section.course_code_by_section # Verify this field name!
-        )
+        enroll_student(voucher.student, item.course_by_section.course_code_by_section)
+
+def is_student_lib_fee_paid_current_sem(student):
+    paid_vouchers = student.fee_vouchers.filter(status='paid',semester=Semester.latest_semester())
+    if paid_vouchers.exists():
+        for voucher in paid_vouchers:
+            if voucher.breakdown['fixed_fees']['library_fee'] > 0:
+                return True
+    return False

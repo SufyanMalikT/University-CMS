@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from .models import FeeVoucher, Payment
 from django.utils import timezone
 from .utils.FeeVoucher import render_to_pdf
-from .services import delete_unpaid_fee_voucher, fulfill_order, calculate_cart_total
+from .services import delete_unpaid_fee_voucher
 import stripe
 from django.contrib import messages
 from django.db import transaction

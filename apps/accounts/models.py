@@ -44,7 +44,7 @@ class Student(models.Model):
 
     # The Repair Function
     def reconcile_balance(self):
-        cached_balance = Ledger.objects.aggregate(total_amount=Sum('amount'))['total_amount'] or 0
+        cached_balance = Ledger.objects.exclude(transaction_type='service').aggregate(total_amount=Sum('amount'))['total_amount'] or 0
         self.cached_balance = cached_balance
         self.save()
 

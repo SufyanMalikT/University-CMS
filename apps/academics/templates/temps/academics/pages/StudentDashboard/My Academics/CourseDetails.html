@@ -19,7 +19,7 @@
                 <p class="text-slate-600 leading-relaxed">
                     This course covers the fundamental principles of {{ section.course.name }}. 
                     Students will explore core concepts, practical applications, and industry standards 
-                    relevant to the modern field of Computer Science.
+                    relevant to the modern field of {{user.student_profile.department.name}}.
                 </p>
             </section>
 
@@ -47,7 +47,7 @@
             <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                 <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Class Schedules</h3>
                 {% for sch in schedules %}
-                <div class="space-y-4 p-2 mb-4 rounded-2xl {% if forloop.counter|divisibleby:2 %}bg-blue-200{% else %}bg-red-300{% endif %}">
+                <div class="space-y-4 p-2 mb-4 rounded-2xl {% if forloop.counter|divisibleby:2 %}bg-slate-200{% else %}bg-slate-100{% endif %}">
                     <div class="flex items-start gap-3">
                         <i class="fas fa-map-marker-alt text-slate-400 mt-1"></i>
                         <div>

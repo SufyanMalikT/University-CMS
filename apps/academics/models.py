@@ -38,16 +38,23 @@ class Room(models.Model):
 
 
 class Course(models.Model):
-    course_type_choices = (
+    COURSE_TYPE_CHOICES = (
         ('Lab','Lab'),
         ('Theory','Theory')
     )
+    CATEGORY_CHOICES = [
+        ('PROG', 'Programming'),
+        ('MATH', 'Mathematics'),
+        ('THEO', 'Theory'),
+        ('SOFT', 'Software Engineering'),
+        ('GEN', 'General Education'),
+    ]
     name = models.CharField(max_length=55)
     credit_hours = models.PositiveSmallIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     course_code = models.CharField(max_length=10,unique=True)
-    course_type = models.CharField(max_length=10, choices=course_type_choices, default='Theory')
-
+    course_type = models.CharField(max_length=10, choices=COURSE_TYPE_CHOICES, default='Theory')
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='GEN')
 
     def __str__(self):
         return f"{self.name} - {self.credit_hours}"

@@ -112,14 +112,17 @@ class Ledger(models.Model):
     transaction_types_choices = (
         ('charge','Charge (Enrollment)'),
         ('payment','Payment (Stripe)'),
-        ('refund','Refund (Drop)')
+        ('refund','Refund (Drop)'),
+        ('service','Service/Other Charge'),
+        ('fine','Late Fine/Penalty')
     )
     student = models.ForeignKey('accounts.Student', related_name='ledger_entries',on_delete=models.CASCADE)
     enrollment = models.ForeignKey('academics.Enrollment', null=True, blank=True, on_delete=models.SET_NULL)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     transaction_type = models.CharField(max_length=20,choices=transaction_types_choices)
     timestamp = models.DateTimeField(auto_now_add=True)
-    payment_reference = models.OneToOneField(Payment, null=True, blank=True, on_delete=models.SET_NULL)
+    payment_reference = models.ForeignKey(Payment, null=True, blank=True, on_delete=models.SET_NULL)
+    description = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.student.user.get_full_name()} amount:{self.amount}"
