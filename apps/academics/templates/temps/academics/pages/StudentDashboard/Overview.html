@@ -11,17 +11,19 @@
     
     {% include 'temps/academics/components/StudentDashboard/stats_card.html' with title="Dues" value=user.student_profile.dues icon="💳" color="slate" %}
 
-    <div class="w-auto md:col-span-3 shadow-md p-2 rounded-2xl">
+    <div class="w-auto  shadow-md md:col-span-2 md:row-span-2 p-2 rounded-2xl h-fit">
+            <canvas id="skillRadar"></canvas>
+    </div>
+    <div class="w-auto md:col-span-2 shadow-md p-2 rounded-2xl h-fit">
         <canvas id="bar-chart"></canvas>
     </div>
-    <data value=""></data>
     <div class="w-auto  shadow-md p-2 rounded-2xl">
-            <canvas id="radio-chart"></canvas>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const ctx = document.querySelector('#bar-chart')
-        const getLabel = {{ label|safe }};
+        const getLabel = {{ barchart_labels|safe }};
         const getSGPA = {{ sgpa|safe }};
         new Chart(ctx, {
             'type':'bar',
@@ -42,6 +44,36 @@
                 }
             }
         });
+    const ctx2 = document.getElementById('skillRadar').getContext('2d');
+    new Chart(ctx2, {
+        type: 'radar',
+        data: {
+            labels: {{ radarchart_labels|safe }},
+            datasets: [{
+                label: 'Student Performance',
+                data: {{ radarchart_data|safe }},
+                backgroundColor: 'rgba(99, 102, 241, 0.2)', // Indigo 500 at 20% opacity
+                borderColor: '#6366f1', // Indigo 500
+                pointBackgroundColor: '#6366f1',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            scales: {
+                r: {
+                    angleLines: { color: '#e2e8f0' }, // Slate-200
+                    grid: { color: '#f1f5f9' },      // Slate-100
+                    suggestedMin: 0,
+                    suggestedMax: 100,
+                    ticks: { display: false } // Keeps the UI clean
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+
     </script>
 </div>
 {% endblock %}

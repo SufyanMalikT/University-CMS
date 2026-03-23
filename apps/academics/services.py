@@ -4,7 +4,7 @@ from ..accounts.models import Student
 from ..finance.models import VoucherItem, FeeConfiguration, Ledger
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ValidationError
-from .models import AttendanceEntry
+from .models import AttendanceEntry, Course
 from django.db.models import Count, Q
 @transaction.atomic 
 def StudentRegistration(valid_form):
@@ -231,3 +231,14 @@ def calculate_course_attendance(student, course_by_section):
     
     return (present_count/total_session)*100
     
+def student_marks_list_per_course_type(student):
+    # Fetch all active enrollments for the student in one go
+    # We use select_related to grab the course and category in the same query
+    active_enrollments = student.enrollments.filter(status='active').select_related('course_by_section__course')
+
+    # One loop through the categories, but NO database hits inside it
+    stats_dict = {
+        val: [e.percentage for e in active_enrollments if e.course_by_section.course.category == cat]
+        for cat, val in Course.CATEGORY_CHOICES
+    }
+    return stats_dict

@@ -64,7 +64,7 @@
                             {{ semester.active_enrollments.count }} Courses
                         </span>
                         <span class="text-sm font-bold text-indigo-600">
-                            GPA: {{ semester.sgpa|default:"--" }}
+                            GPA: {{ semester.sgpa|default:"--"|stringformat:'.2f' }}
                         </span>
                     </div>
                 </a>

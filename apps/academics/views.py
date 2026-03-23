@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 import json
 from django.http import HttpResponse
 from django.contrib import messages
-from .services import enroll_student, unenroll_student, add_to_cart, grade_per_course, grade_per_semester
+from .services import enroll_student, unenroll_student, add_to_cart, grade_per_course, grade_per_semester, \
+                        student_marks_list_per_course_type
 from ..finance.services import  calculate_cart_total,generate_fee_voucher
 from .services import remove_course_from_cart, grade_per_course, \
                         calculate_overall_attendance_percentage, calculate_course_attendance
@@ -42,7 +43,34 @@ def student_dashboard_view(request):
         sgpa.append(grade_per_semester(student,sem))
     semester_names_json = json.dumps(semester_names)
     sgpa_json = json.dumps(sgpa)
-    return render(request, 'temps/academics/pages/StudentDashboard/Overview.html',{'page_name':'Overview','label':semester_names,'sgpa':sgpa,'attendance_percentage':attendance_percentage})
+
+    ### Fetching data for Radar Chart
+    # Fetch all active enrollments with course details in ONE query
+    active_enrollments = student.enrollments.filter(
+        status='active'
+    ).select_related('course_by_section__course')
+
+    # Prepare labels and data
+    # We use a dictionary comprehension to map Category Name -> Average Percentage
+    categories = dict(Course.CATEGORY_CHOICES)
+    stats = {}
+
+    for cat_code, cat_name in categories.items():
+        # Filter the prefetched list in Python (No extra DB hits)
+        marks = [float(e.percentage) for e in active_enrollments if e.course_by_section.course.category == cat_code]
+        if marks:
+            stats[cat_name] = sum(marks) / len(marks)
+        else:
+            stats[cat_name] = 0
+            
+    return render(request, 'temps/academics/pages/StudentDashboard/Overview.html',{
+        'page_name':'Overview',
+        'barchart_labels':semester_names,
+        'sgpa':sgpa,
+        'radarchart_labels': json.dumps(list(stats.keys())),
+        'radarchart_data': json.dumps(list(stats.values())),
+        'attendance_percentage':attendance_percentage}
+    )
 
 @student_only
 @login_required
