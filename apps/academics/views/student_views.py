@@ -2,20 +2,20 @@ from django.shortcuts import render, redirect, get_object_or_404
 import json
 from django.http import HttpResponse
 from django.contrib import messages
-from .services import enroll_student, unenroll_student, add_to_cart, grade_per_course, grade_per_semester, \
+from ..services import enroll_student, unenroll_student, add_to_cart, grade_per_course, grade_per_semester, \
                         student_marks_list_per_course_type
-from ..finance.services import  calculate_cart_total,generate_fee_voucher
-from .services import remove_course_from_cart, grade_per_course, \
+from ...finance.services import  calculate_cart_total,generate_fee_voucher
+from ..services import remove_course_from_cart, grade_per_course, \
                         calculate_overall_attendance_percentage, calculate_course_attendance
 from django.contrib.auth.decorators import login_required
-from .models import Course,CourseBySection, Semester, Enrollment, DateSheetEntry
-from ..finance.models import VoucherItem, FeeVoucher, FeeConfiguration
-from .permissions import student_only, instructor_only
+from ..models import Course,CourseBySection, Semester, Enrollment, DateSheetEntry
+from ...finance.models import VoucherItem, FeeVoucher, FeeConfiguration
+from ..permissions import student_only, instructor_only
 import stripe 
 from django.conf import settings
 from django.utils import timezone
 from django.db.models import Count, Q, Sum
-from ..finance.utils.FeeVoucher import render_to_pdf
+from ...finance.utils.FeeVoucher import render_to_pdf
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def home_view(request):
