@@ -77,6 +77,7 @@ def student_dashboard_view(request):
 def student_add_courses_page_view(request):
     course_by_section = None
     course_by_section_assignment = None
+    semester = Semester.latest_semester()
     unpaid_voucher = FeeVoucher.objects.filter(student=request.user.student_profile, status='unpaid')
     if request.method == "POST":
         if unpaid_voucher.exists():
@@ -93,7 +94,7 @@ def student_add_courses_page_view(request):
             return redirect('add_classes')
 
     
-    return render(request, 'temps/academics/pages/StudentDashboard/My Academics/AddClasses.html',{'course':course_by_section,'course_assignment_for_current_sem':course_by_section_assignment, 'page_name':'Add Classes'})
+    return render(request, 'temps/academics/pages/StudentDashboard/My Academics/AddClasses.html',{'course':course_by_section,'course_assignment_for_current_sem':course_by_section_assignment,'semester':semester, 'page_name':'Add Classes'})
 
 @student_only
 @login_required

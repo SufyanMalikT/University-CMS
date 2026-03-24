@@ -2,7 +2,7 @@
 
 {% block main_section %}
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-    
+    <div class="grid grid-cols-2 md:col-span-2 gap-2">
     {% include 'temps/academics/components/StudentDashboard/stats_card.html' with title="CGPA" value=user.student_profile.calculate_cgpa icon="🎓" color="blue" %}
     
     {% include 'temps/academics/components/StudentDashboard/stats_card.html' with title="Attendance(%)" value=attendance_percentage icon="📅" color="green" %}
@@ -10,16 +10,13 @@
     {% include 'temps/academics/components/StudentDashboard/stats_card.html' with title="Credits" value=user.student_profile.earned_credits icon="📜" color="purple" %}
     
     {% include 'temps/academics/components/StudentDashboard/stats_card.html' with title="Dues" value=user.student_profile.dues icon="💳" color="slate" %}
-
-    <div class="w-auto  shadow-md md:col-span-2 md:row-span-2 p-2 rounded-2xl h-fit">
+    </div>
+    <div class="h-[200px] w-screen md:w-full md:h-full shadow-sm  md:col-span-2 row-span-2 p-2 rounded-2xl border border-gray-100 bg-white">
             <canvas id="skillRadar"></canvas>
     </div>
-    <div class="w-auto md:col-span-2 shadow-md p-2 rounded-2xl h-fit">
+    <div class="h-[200px] w-screen md:w-full md:h-full md:col-span-2 shadow-sm md:p-2 rounded-2xl border border-gray-100 bg-white">
         <canvas id="bar-chart"></canvas>
     </div>
-    <div class="w-auto  shadow-md p-2 rounded-2xl">
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const ctx = document.querySelector('#bar-chart')
