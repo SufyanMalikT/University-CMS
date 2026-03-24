@@ -32,6 +32,11 @@ def home_view(request):
 
 @login_required
 @student_only
+def student_about_cms(request):
+    return render(request, "temps/academics/pages/StudentDashboard/AboutCMS.html",{})
+
+@login_required
+@student_only
 def student_dashboard_view(request):
     student = request.user.student_profile
     attendance_percentage = calculate_overall_attendance_percentage(request.user.student_profile)
@@ -172,7 +177,7 @@ def student_drop_course_page(request):
             return redirect('drop_course')
         messages.error(request, "coundn't find the course to drop")
         return redirect('drop_course')
-    return render(request, 'temps/academics/pages/StudentDashboard/My Academics/DropClasses.html',{'semester':semester,'enrollments':enrollments})
+    return render(request, 'temps/academics/pages/StudentDashboard/My Academics/DropClasses.html',{'semester':semester,'enrollments':enrollments,'page_name':'Drop Classes'})
     
 @student_only
 @login_required

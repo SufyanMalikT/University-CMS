@@ -4,9 +4,10 @@ from .views import home_view, student_dashboard_view, student_add_courses_view, 
                     student_course_details_view, add_to_cart_view, cart_page_view, \
                     remove_course_from_cart_view, student_drop_course_page, results_page_view, results_by_semester_page_view, \
                     marks_details_page_view, download_transcript, date_sheet_page_view, download_datesheet,\
-                    admit_card_page_view, download_admit_card
+                    admit_card_page_view, download_admit_card, student_about_cms
 
 urlpatterns = [
+    path('about-cms',student_about_cms, name='about_cms'),
     path('dashboard/',student_dashboard_view, name='student_dashboard'),
     path('dashboard/academics/add_classes',student_add_courses_page_view, name='add_classes'),
     path('dashboard/academics/add_classes/<int:course_code_by_section>/enroll',student_add_courses_view, name='enroll_course'),
