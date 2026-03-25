@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% load instructor_tags %}
+{% block title %}
+    {% block instructor_title %} {% endblock %}
+{% endblock %}
+{% block content %}
+    <div class="min-w-screen min-h-screen bg-gray-300">
+
+        {% include 'comps/InstructorDashboard/navbar.html' %}
+        {% block instructor_navbar %}{% endblock %}
+
+        {% render_instructor_sidebar %}
+        <!-- <!-- {% include 'comps/InstructorDashboard/sidebar.html' %} -->
+        {% block instructor_sidebar %}{% endblock %} -->
+         
+        <section class="pt-16 md:ml-70 pr-0">
+            <div class="text-black bg-slate-50 shadow-xl md:p-4 py-8 h-screen max-w-fit overflow-x-auto min-w-full">
+                {% block main_section %} {% endblock %}
+            </div>
+        </section>
+    </div>
+    
+{% endblock %}

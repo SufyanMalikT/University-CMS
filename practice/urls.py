@@ -23,9 +23,9 @@ urlpatterns = [
     path('',home_view,name='home'),
     path('admin/', admin.site.urls),
     path('student/', include('apps.academics.urls.student_urls')),
-    path('student/', include('apps.accounts.student_urls')),
+    path('accounts/', include('apps.accounts.urls')),
     path('student/', include('apps.finance.student_urls')),
-    path('instrcutor/',include('apps.academics.urls.instructor_urls')),
+    path('instructor/',include('apps.academics.urls.instructor_urls')),
     path('api/', include('apps.api.urls')),
 ] 
 if settings.DEBUG:

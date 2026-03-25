@@ -8,8 +8,8 @@ def instructor_only(myview):
         if not request.user.is_authenticated:
             return redirect('login')
         
-        if not hasattr(request.user,'instructor'):
-            return HttpResponseForbidden("Instrcutors Only")
+        if not hasattr(request.user,'instructor_profile'):
+            return HttpResponseForbidden("Instructors Only")
         
         return myview(request, *args, **kwargs)
     return _wrapped
@@ -20,7 +20,7 @@ def student_only(myview):
         if not request.user.is_authenticated:
             return redirect('login')
         
-        if hasattr(request.user,'student'):
+        if hasattr(request.user,'student_profile'):
             return HttpResponseForbidden("Students Only")
         return myview(request, *args, **kwargs)
     return _wrapped

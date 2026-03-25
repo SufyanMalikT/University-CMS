@@ -27,7 +27,7 @@ def home_view(request):
         return redirect('student_dashboard')
     
     if hasattr(user, 'instructor_profile'):
-        return redirect('home')
+        return redirect('instructor_dashboard')
     return render(request, 'temps/academics/home.html')
 
 @login_required

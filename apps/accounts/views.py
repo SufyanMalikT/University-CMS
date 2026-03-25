@@ -59,6 +59,11 @@ def login_view(request):
             login(request, user)
             if hasattr(user,'student_profile'):
                 return redirect('student_dashboard')
+            elif hasattr(user, 'instructor_profile'):
+                print("Hello ")
+                return redirect('instructor_dashboard')
+            else:
+                return redirect('login')
         else:
             return redirect('login')
     return render(request,'login.html',{})
