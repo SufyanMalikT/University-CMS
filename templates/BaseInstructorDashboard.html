@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% load instructor_tags %}
+{% load instructor_tags%}
 {% block title %}
     {% block instructor_title %} {% endblock %}
 {% endblock %}
@@ -11,14 +11,26 @@
         {% block instructor_navbar %}{% endblock %}
 
         {% render_instructor_sidebar %}
-        <!-- <!-- {% include 'comps/InstructorDashboard/sidebar.html' %} -->
-        {% block instructor_sidebar %}{% endblock %} -->
+
          
-        <section class="pt-16 md:ml-70 pr-0">
+        <section class=" md:ml-64 pr-0">
             <div class="text-black bg-slate-50 shadow-xl md:p-4 py-8 h-screen max-w-fit overflow-x-auto min-w-full">
                 {% block main_section %} {% endblock %}
             </div>
         </section>
     </div>
-    
+<script>
+    const menu_btn = document.querySelector('#hamb-menu')
+    const sidebar = document.getElementById('sidebar2')
+    count = 0
+    console.log(sidebar)
+    menu_btn.addEventListener('click', () => {
+        if(count % 2 == 0){
+            sidebar.classList.add('hidden')
+        }else{
+            sidebar.classList.remove('hidden')
+        }
+        count += 1
+    })
+</script>
 {% endblock %}

@@ -489,4 +489,3 @@ class DateSheetEntry(models.Model):
         ordering = ['exam_date', 'start_time']
     def __str__(self):
         return f"{self.course_by_section.course.name} - {self.room.name} - {self.exam_date}" 
-
