@@ -191,6 +191,7 @@ class CourseAssignment(models.Model):
     instructor = models.ForeignKey('accounts.Instructor', related_name='assignments',on_delete=models.CASCADE)
     semester = models.ForeignKey(Semester, related_name='assignments', on_delete=models.CASCADE)
     assigned_at = models.DateField(auto_now_add=True)
+    result_uploaded = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('course_by_section','instructor','semester')

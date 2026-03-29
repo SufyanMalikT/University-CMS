@@ -22,15 +22,14 @@
 <script>
     const menu_btn = document.querySelector('#hamb-menu')
     const sidebar = document.getElementById('sidebar2')
-    count = 0
-    console.log(sidebar)
+    const sidebar_close_btn = document.getElementById('sidebar_close_btn')
+
     menu_btn.addEventListener('click', () => {
-        if(count % 2 == 0){
-            sidebar.classList.add('hidden')
-        }else{
             sidebar.classList.remove('hidden')
-        }
-        count += 1
+    })
+
+    sidebar_close_btn.addEventListener('click', () => {
+        sidebar.classList.add('hidden')
     })
 </script>
 {% endblock %}

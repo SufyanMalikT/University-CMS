@@ -2,7 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from django.db.models import Sum
+from django.db.models import Sum, Count
+from ..academics.models import Semester, CourseBySection, Enrollment, CourseAssignment
 from ..finance.models import Ledger
 from django.conf import settings
 # Create your models here.
@@ -152,5 +153,27 @@ class Instructor(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL,related_name='instructor_profile',on_delete=models.CASCADE)
     department = models.ForeignKey('academics.Department', on_delete=models.SET_NULL, null=True)
 
+    @property
+    def assigned_classes_current_semester(self):
+        return self.assignments.filter(semester=Semester.latest_semester()).aggregate(assigned_courses=Count('id'))['assigned_courses'] or 0
+
+    @property # this method is for the active student count for the assigned classes for current semester
+    def active_enrollments_current_semester(self):
+        classes_assigned = CourseBySection.objects.filter(assignments__instructor=self, assignments__semester=Semester.latest_semester())
+        if not classes_assigned:
+            return 0
+        return Enrollment.objects.filter(status='active').aggregate(enrollments_count=Count('id'))['enrollments_count'] or 0
+
+    @property # this property returns the count of ungraded classes for last 2 months which already ahd their exams conducted.
+    def get_total_backlog(self): # !!! cant use this for a list of instructor to prevent N+1 trap
+        last_six_months = timezone.now() - timezone.timedelta(days=180)
+        ungraded_classes = CourseAssignment.objects.filter(
+            instructor=self,
+            result_uploaded=False,
+            semester__start_date__gt=last_six_months,
+            course_by_section__datesheet_entries__exam_date__lt=timezone.now().date(),
+            course_by_section__datesheet_entries__exam_type='Finalterm'
+        )
+        return ungraded_classes.count()
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name}"
