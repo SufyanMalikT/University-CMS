@@ -10,8 +10,11 @@
         {% else %}
             {% include 'temps/academics/components/InstructorDashboard/stats_card.html' with icon='<i class="fa-solid fa-graduation-cap" style="color: rgb(116, 192, 252);"></i>' title='Grading Backlog' value=request.user.instructor_profile.get_total_backlog color='blue' %}
         {% endif %}
-        {% include 'temps/academics/components/InstructorDashboard/stats_card.html' with icon=None title='No. of Assigned Courses' value=request.user.instructor_profile.assigned_classes_current_semester %}
-
+        {% if request.user.instructor_profile.attendance_pulse >= 0 %}
+            {% include 'temps/academics/components/InstructorDashboard/stats_card.html' with icon='<i class="fa-solid fa-arrow-trend-up" style="color: rgb(116, 192, 252);"></i>' title='Attendance Pulse' value=request.user.instructor_profile.attendance_pulse color='green'%}
+        {% else %}
+            {% include 'temps/academics/components/InstructorDashboard/stats_card.html' with icon='<i class="fa-solid fa-arrow-trend-up fa-flip-vertical" style="color: rgb(247, 8, 8);"></i>' title='Attendance Pulse' value=request.user.instructor_profile.attendance_pulse color='red'%}
+        {% endif %}
     </div>
 </div>
 {% endblock %}

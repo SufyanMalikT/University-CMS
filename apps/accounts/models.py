@@ -2,8 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from django.db.models import Sum, Count
-from ..academics.models import Semester, CourseBySection, Enrollment, CourseAssignment
+from django.db.models import Sum, Avg, Count, Case, When, FloatField
+from ..academics.models import Semester, CourseBySection, Enrollment, CourseAssignment, ClassSession, AttendanceEntry
 from ..finance.models import Ledger
 from django.conf import settings
 # Create your models here.
@@ -164,6 +164,53 @@ class Instructor(models.Model):
             return 0
         return Enrollment.objects.filter(status='active').aggregate(enrollments_count=Count('id'))['enrollments_count'] or 0
 
+    @property
+    def attendance_pulse(self):
+        now = timezone.now().date()
+        this_week_start = now - timezone.timedelta(days=7)
+        prev_week_start = now - timezone.timedelta(days=14)
+
+        assigned_classes = self.classes_assigned_current_semester()
+        if not assigned_classes:
+            return 0
+
+        def get_avg_for_period(start_date, end_date):
+            # 1. Get sessions in this range
+            sessions = ClassSession.objects.filter(
+                schedule__course_by_section__assignments__in=assigned_classes,
+                date__gte=start_date,
+                date__lt=end_date
+            )
+            
+            if not sessions.exists():
+                return 0
+
+            # 2. Calculate average attendance for these sessions
+            # (Assuming AttendanceEntry has a status: Present=1, Absent=0)
+            avg_rate = AttendanceEntry.objects.filter(session__in=sessions).aggregate(
+                avg_presence=Avg(
+                    Case(
+                        When(was_present=True, then=1.0),
+                        When(was_present=False, then=0.0),
+                        output_field=FloatField(),
+                    )
+                )
+            )['avg_presence'] or 0
+            
+            return avg_rate * 100
+
+        rate_this_week = get_avg_for_period(this_week_start, now)
+        rate_last_week = get_avg_for_period(prev_week_start, this_week_start)
+
+        # Return the "Swing" (e.g., +5% or -2%)
+        if rate_last_week == 0:
+            return 0 # Or handle as "New Data"
+            
+        return rate_this_week - rate_last_week
+
+    def classes_assigned_current_semester(self):
+        return CourseAssignment.objects.filter(instructor=self, semester=Semester.latest_semester())
+    
     @property # this property returns the count of ungraded classes for last 2 months which already ahd their exams conducted.
     def get_total_backlog(self): # !!! cant use this for a list of instructor to prevent N+1 trap
         last_six_months = timezone.now() - timezone.timedelta(days=180)
