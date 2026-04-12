@@ -20,7 +20,7 @@ def student_only(myview):
         if not request.user.is_authenticated:
             return redirect('login')
         
-        if not hasattr(request.user,'student_profile'):
+        if hasattr(request.user,'student_profile'):
             return HttpResponseForbidden("Students Only")
         return myview(request, *args, **kwargs)
     return _wrapped
