@@ -1,0 +1,14 @@
+{% block kpi_card %}
+<div class=" bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center space-x-4 w-auto max-w-screen">
+    {% if icon %}
+    <div class="hidden md:block p-3 rounded-xl bg-{{ color }}-50 text-{{ color }}-600">
+        <!-- <span class="text-xl">{{ icon }}</span> -->
+        {{ icon|safe }}
+    </div>
+    {% endif %}
+    <div>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-tight">{{ title }}</p>
+        <h3 class="text-2xl font-black text-slate-800 leading-none mt-1">{{ value }}</h3>
+    </div>
+</div>
+{% endblock %}

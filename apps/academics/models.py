@@ -191,6 +191,7 @@ class CourseAssignment(models.Model):
     instructor = models.ForeignKey('accounts.Instructor', related_name='assignments',on_delete=models.CASCADE)
     semester = models.ForeignKey(Semester, related_name='assignments', on_delete=models.CASCADE)
     assigned_at = models.DateField(auto_now_add=True)
+    result_uploaded = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('course_by_section','instructor','semester')
@@ -489,4 +490,3 @@ class DateSheetEntry(models.Model):
         ordering = ['exam_date', 'start_time']
     def __str__(self):
         return f"{self.course_by_section.course.name} - {self.room.name} - {self.exam_date}" 
-

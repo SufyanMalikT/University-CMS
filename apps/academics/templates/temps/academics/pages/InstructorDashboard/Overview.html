@@ -1,5 +1,20 @@
 {% extends 'BaseInstructorDashboard.html' %}
 
 {% block main_section %}
-<h1>Hello this ins db</h1>
+<div class="">
+    <div class="grid  grid-cols-2 lg:grid-cols-4 md:grid-cols-3 gap-4">
+        {% include 'temps/academics/components/InstructorDashboard/stats_card.html' with icon='<i class="fa-solid fa-user-check" style="color: rgb(177, 151, 252);"></i>' title='Active Enrollments' value=request.user.instructor_profile.active_enrollments_current_semester color='red' %}
+        {% include 'temps/academics/components/InstructorDashboard/stats_card.html' with icon='<i class="fa-solid fa-book" style="color: rgb(177, 151, 252);"></i>' title='No. Assigned Classes' value=request.user.instructor_profile.assigned_classes_current_semester color='yellow' %}
+        {% if request.user.instructor_profile.get_total_backlog > 10 %}
+            {% include 'temps/academics/components/InstructorDashboard/stats_card.html' with icon='<i class="fa-solid fa-triangle-exclamation" style="color: rgb(255, 0, 0);"></i>' title='Grading Backlog' value=request.user.instructor_profile.get_total_backlog color='red' %}
+        {% else %}
+            {% include 'temps/academics/components/InstructorDashboard/stats_card.html' with icon='<i class="fa-solid fa-graduation-cap" style="color: rgb(116, 192, 252);"></i>' title='Grading Backlog' value=request.user.instructor_profile.get_total_backlog color='blue' %}
+        {% endif %}
+        {% if request.user.instructor_profile.attendance_pulse >= 0 %}
+            {% include 'temps/academics/components/InstructorDashboard/stats_card.html' with icon='<i class="fa-solid fa-arrow-trend-up" style="color: rgb(116, 192, 252);"></i>' title='Attendance Pulse' value=request.user.instructor_profile.attendance_pulse color='green'%}
+        {% else %}
+            {% include 'temps/academics/components/InstructorDashboard/stats_card.html' with icon='<i class="fa-solid fa-arrow-trend-up fa-flip-vertical" style="color: rgb(247, 8, 8);"></i>' title='Attendance Pulse' value=request.user.instructor_profile.attendance_pulse color='red'%}
+        {% endif %}
+    </div>
+</div>
 {% endblock %}
