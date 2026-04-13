@@ -169,6 +169,31 @@ class CourseBySection(models.Model):
 
         return self.section.limit_of_students - (self.no_of_enrolled_students + pending_seats)
     
+    
+    @property
+    def pending_grading(self):
+    
+        # 1. Get the total number of students who SHOULD have marks
+        total_enrolled = self.enrollments.filter(status='active').count() # Assuming 'self' is the CourseBySection
+        if total_enrolled == 0:
+            return None
+
+        # 2. Get counts for every title already in the system
+        title_counts = MarkEntry.objects.filter(
+            enrollment__course_by_section=self
+        ).values('title').annotate(current_count=Count('id'))
+
+        backlog = []
+        for entry in title_counts:
+            missing = total_enrolled - entry['current_count']
+            if missing > 0:
+                backlog.append({
+                    'title': entry['title'],
+                    'missing_count': missing
+                })
+
+        return backlog if backlog else None
+    
     def clean(self):
         super().clean()
 
@@ -308,6 +333,12 @@ class Enrollment(models.Model):
             grade = 0.0 
         return grade
 
+    @property
+    def student_attendance_rate(self):
+        total_student_presents = self.student.attendance.filter(session__schedule__course_by_section=self.course_by_section,session__schedule__semester=self.semester,was_present=True).aggregate(total=Count('id'))['total']
+        total_sessions = self.student.attendance.filter(session__schedule__course_by_section=self.course_by_section,session__schedule__semester=self.semester).aggregate(total=Count('id'))['total']
+        return (total_student_presents/total_sessions) * 100
+    
     class Meta:
         constraints = [
             models.UniqueConstraint(

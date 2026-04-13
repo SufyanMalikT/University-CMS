@@ -1,18 +1,24 @@
 from django import forms
 from .models import CustomUser
+from ..academics.models import Department
 class StudentRegistrationForm(forms.ModelForm):
     confirm_password = forms.CharField(
         label="Confirm Password",
         widget=forms.PasswordInput(attrs={'placeholder': 'Confirm Password','class':'border border-gray-300 shadow py-1 px-2 w-md rounded-md'})
     )
+    department = forms.ModelChoiceField(
+        queryset=Department.objects.all(),
+        empty_label='Select a Department'
+    )
     class Meta:
         model = CustomUser
-        fields = ['username','email','first_name','last_name','phone','birth_date','password']
+        fields = ['username','email','first_name','last_name','phone','birth_date','department','password']
         widgets = {
             'password':forms.PasswordInput(attrs={'placeholder':'Password','class':'border border-gray-300 shadow py-1 px-2 w-md rounded-md'}),
             'birth_date':forms.DateInput(attrs={'placeholder':'YYYY-MM-DD','class':'border border-gray-300 shadow py-1 px-2 w-md rounded-md'}),
             'username':forms.TextInput(attrs={'class':'border border-gray-300 shadow py-1 px-2 w-md rounded-md'}),
             'email':forms.EmailInput(attrs={'class':'border border-gray-300 shadow py-1 px-2 w-md rounded-md'}),
+            'department':forms.TextInput(attrs={'class':'border border-gray-300 shadow py-1 px-2 w-md rounded-md'}),
             'first_name':forms.TextInput(attrs={'class':'border border-gray-300 shadow py-1 px-2 w-md rounded-md'}),
             'last_name':forms.TextInput(attrs={'class':'border border-gray-300 shadow py-1 px-2 w-md rounded-md'}),
             'phone':forms.TextInput(attrs={'class':'border border-gray-300 shadow py-1 px-2 w-md rounded-md'}),

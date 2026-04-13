@@ -23,7 +23,7 @@
 
         <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-6 mb-2">My Courses</p>
         {% for assignment in assignments %}
-            <a href="#" class="flex items-center justify-between px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-xl transition-all group">
+            <a href="{% url 'academics/instructor:class_details' class_id=assignment.course_by_section.course_code_by_section %}" class="flex items-center justify-between px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-xl transition-all group">
                 <div class="flex items-center space-x-3">
                     <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
                     <span class="text-sm">{{assignment.course_by_section.course.course_code}}: {{ assignment.course_by_section.course.name}}</span>
