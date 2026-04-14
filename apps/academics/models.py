@@ -337,6 +337,8 @@ class Enrollment(models.Model):
     def student_attendance_rate(self):
         total_student_presents = self.student.attendance.filter(session__schedule__course_by_section=self.course_by_section,session__schedule__semester=self.semester,was_present=True).aggregate(total=Count('id'))['total']
         total_sessions = self.student.attendance.filter(session__schedule__course_by_section=self.course_by_section,session__schedule__semester=self.semester).aggregate(total=Count('id'))['total']
+        if total_sessions == 0:
+            return None
         return (total_student_presents/total_sessions) * 100
     
     class Meta:

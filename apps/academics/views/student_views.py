@@ -28,6 +28,8 @@ def home_view(request):
     
     if hasattr(user, 'instructor_profile'):
         return redirect('academics/instructor:instructor_dashboard')
+    if user.is_superuser:
+        return redirect('admin/')
     return render(request, 'temps/academics/home.html')
 
 @login_required

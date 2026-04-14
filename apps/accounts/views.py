@@ -61,14 +61,14 @@ def login_view(request):
                 return redirect('student_dashboard')
             elif hasattr(user, 'instructor_profile'):
                 print("Hello ")
-                return redirect('instructor_dashboard')
+                return redirect('academics/instructor:instructor_dashboard')
             else:
-                return redirect('login')
+                return redirect('accouts:login')
         else:
-            return redirect('login')
+            return redirect('accounts:login')
     return render(request,'login.html',{})
 
 @login_required
 def logout_view(request):
     logout(request)
-    return redirect('login')
+    return redirect('accounts:login')

@@ -21,7 +21,7 @@ from django.conf.urls.static import static
 from apps.academics.views.student_views import home_view
 urlpatterns = [
     path('',home_view,name='home'),
-    path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls, name='admin_panel'),
     path('student/', include('apps.academics.urls.student_urls')),
     path('accounts/', include('apps.accounts.urls')),
     path('student/', include('apps.finance.student_urls')),

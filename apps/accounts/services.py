@@ -14,10 +14,11 @@ def InstructorRegistration(valid_form):
 
 @transaction.atomic 
 def StudentRegistration(valid_form):
+    dep = valid_form.cleaned_data['department']
     user = valid_form.save(commit=False)
     password = valid_form.cleaned_data['password']
     user.set_password(password)
     user.save()
-    student = Student.objects.create(user=user)
+    student = Student.objects.create(user=user,department=dep)
     student.save()
     return student
