@@ -194,6 +194,25 @@ class CourseBySection(models.Model):
 
         return backlog if backlog else None
     
+    @property
+    def last_session_created_in_days(self):
+        session = ClassSession.objects.filter(
+            schedule__course_by_section=self,
+            schedule__semester=Semester.latest_semester()
+        ).order_by('created_at')
+        if session.exists():
+            return (timezone.now().date() - session.first().created_at.date()).days
+        else:
+            return None
+
+    @property
+    def sessions_current_semester(self):
+        sessions_count = ClassSession.objects.filter(
+            schedule__course_by_section=self,
+            schedule__semester=Semester.latest_semester()
+        ).count()
+        return sessions_count
+                                  
     def clean(self):
         super().clean()
 

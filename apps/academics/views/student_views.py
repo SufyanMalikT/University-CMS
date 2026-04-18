@@ -2,11 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 import json
 from django.http import HttpResponse
 from django.contrib import messages
-from ..services import enroll_student, unenroll_student, add_to_cart, grade_per_course, grade_per_semester, \
-                        student_marks_list_per_course_type
 from ...finance.services import  calculate_cart_total,generate_fee_voucher
-from ..services import remove_course_from_cart, grade_per_course, \
-                        calculate_overall_attendance_percentage, calculate_course_attendance
+from ..services.student_services import enroll_student, unenroll_student, add_to_cart,  \
+    grade_per_semester, student_marks_list_per_course_type,remove_course_from_cart,  \
+    calculate_overall_attendance_percentage, calculate_course_attendance
 from django.contrib.auth.decorators import login_required
 from ..models import Course,CourseBySection, Semester, Enrollment, DateSheetEntry
 from ...finance.models import VoucherItem, FeeVoucher, FeeConfiguration

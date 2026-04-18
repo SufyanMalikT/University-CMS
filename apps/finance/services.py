@@ -3,7 +3,7 @@ from django.db import transaction
 from .models import VoucherItem, FeeVoucher, FeeConfiguration, Payment, Ledger
 from ..academics.models import Semester, Enrollment
 from django.shortcuts import get_object_or_404
-from ..academics.services import enroll_student
+from ..academics.services.student_services import enroll_student
 from decimal import Decimal
 
 def calculate_cart_total(student):

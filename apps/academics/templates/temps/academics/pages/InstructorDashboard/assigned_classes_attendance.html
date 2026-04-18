@@ -1,0 +1,64 @@
+{% extends 'BaseInstructorDashboard.html' %}
+
+{% block main_section %}
+<div class="mb-10">
+    <h1 class="text-3xl font-black text-slate-900 tracking-tight">Assigned Courses</h1>
+    <p class="text-slate-500 font-medium">Spring 2026 Semester • <span class="text-indigo-600">Faculty Portal</span></p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+    {% for assignment in classes %}
+    <div class="group bg-white rounded-[32px] border border-slate-200 p-6 hover:shadow-xl hover:shadow-indigo-100/50 transition-all duration-300 flex flex-col justify-between">
+        
+        <div class="flex justify-between items-start mb-6">
+            <div class="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                {{ assignment.course_by_section.course.course_code }}
+            </div>
+            
+            <!-- {% if assignment.marked_today %}
+                <span class="flex items-center gap-1.5 text-emerald-600 font-bold text-xs">
+                    <div class="w-2 h-2 rounded-full bg-emerald-500"></div> Complete
+                </span>
+            {% else %}
+                <span class="flex items-center gap-1.5 text-amber-500 font-bold text-xs">
+                    <div class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></div> Pending
+                </span>
+            {% endif %} -->
+            <span class="flex items-center gap-1.5 text-emerald-600 font-bold text-xs" >
+                Total Sessions: {{ assignment.course_by_section.sessions_current_semester }}
+            </span>
+        </div>
+
+        <div class="mb-8">
+            <h3 class="text-xl font-black text-slate-900 leading-tight mb-2 group-hover:text-indigo-600 transition-colors">
+                {{ assignment.course_by_section.course.name }}
+            </h3>
+            <div class="flex items-center gap-2 text-slate-500 font-bold text-sm">
+                <span class="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md text-xs">{{ assignment.course_by_section.section.section_id }}</span>
+                <span>•</span>
+                <span>{{ assignment.course_by_section.no_of_enrolled_students }} Students</span>
+            </div>
+        </div>
+
+        <div class="pt-6 border-t border-slate-50 flex items-center justify-between">
+            <div class="text-left">
+                <p class="text-[10px] text-slate-400 uppercase font-black tracking-tighter">Last Marked</p>
+                {% if assignment.course_by_section.last_session_created_in_days %}
+                    <p class="text-xs font-bold text-slate-700">{{ assignment.course_by_section.last_session_created_in_days }} days ago</p>
+                {% else %}
+                    <p class="text-xs font-bold text-slate-700">Never</p>
+                {% endif %}
+            </div>
+            
+            <a href="{% url 'academics/instructor:attendance_page_for_class' course_by_section_id=assignment.course_by_section.course_code_by_section %}" 
+               class="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-200 group-hover:w-32 transition-all duration-300 overflow-hidden relative">
+                <span class="absolute left-4 opacity-0 group-hover:opacity-100 font-bold text-sm transition-opacity whitespace-nowrap">Mark Now</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute right-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                </svg>
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

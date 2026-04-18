@@ -1,10 +1,9 @@
 from django.db import transaction
-from .models import CourseBySection, Semester, Enrollment, MarkEntry
-from ..accounts.models import Student
-from ..finance.models import VoucherItem, FeeConfiguration, Ledger
+from ..models import CourseBySection, Semester, Enrollment, MarkEntry, AttendanceEntry, Course
+from ...accounts.models import Student
+from ...finance.models import VoucherItem, FeeConfiguration, Ledger
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ValidationError
-from .models import AttendanceEntry, Course
 from django.db.models import Count, Q
 @transaction.atomic 
 def StudentRegistration(valid_form):

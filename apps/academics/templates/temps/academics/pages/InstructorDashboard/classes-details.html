@@ -7,9 +7,9 @@
         <p class="text-slate-500 font-medium">Section: <span class="text-indigo-600 font-bold">{{ class.section.section_id }}</span> • Credit Hours: {{class.course.credit_hours}}</p>
     </div>
     <div class="flex gap-3">
-        <button class="px-5 py-2.5 bg-indigo-600 text-white rounded-2xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">
+        <a href="{% url 'academics/instructor:attendance_page_for_class' course_by_section_id=class.course_code_by_section %}" class="px-5 py-2.5 bg-indigo-600 text-white rounded-2xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">
             Mark Attendance
-        </button>
+        </a>
         <button class="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-2xl font-bold text-sm hover:bg-slate-50 transition-all">
             Post Announcement
         </button>
