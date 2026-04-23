@@ -20,7 +20,7 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 def home_view(request):
     user = request.user
     if not user.is_authenticated:
-        return redirect('login')
+        return redirect('accounts:login')
     
     if hasattr(user, 'student_profile'):
         return redirect('student_dashboard')

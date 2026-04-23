@@ -21,18 +21,6 @@ def classes_details_page(request, class_id):
         pending_grading = course_by_section.pending_grading
     return render(request, 'temps/academics/pages/InstructorDashboard/classes-details.html',{'class':course_by_section,'pending_grading':pending_grading})
 
-@login_required
-@instructor_only
-def assigned_classes_attendance_view(request):
-    assigned_classes_this_sem = CourseAssignment.objects.filter(instructor=request.user.instructor_profile, semester=Semester.latest_semester())
-    return render(request, 
-                  'temps/academics/pages/InstructorDashboard/assigned_classes_attendance.html', 
-                  {
-                    'classes':assigned_classes_this_sem,
-                    'semester':Semester.latest_semester(), 
-                    'classes_count':assigned_classes_this_sem.count()
-                    }
-                )
 
 @login_required
 @instructor_only
@@ -61,7 +49,16 @@ def mark_attendance_view(request, course_by_section_id):
             mark_attendance(course_by_section, schedule, session_date, absent_students)
 
             messages.success(request, "Attendance has been marked for this session")
-            return redirect('academics/instructor:assigned_classes_attendance')
+            return redirect('academics/instructor:assigned_classes')
         except Exception as e:
             messages.error(request, "Error: "+str(e))
         return redirect('academics/instructor:attendance_page_for_class', course_by_section_id=course_by_section_id)
+    
+
+
+@login_required
+@instructor_only
+def assigned_courses_page(request):
+    current_sem = Semester.latest_semester()
+    assignments = CourseAssignment.objects.filter(instructor=request.user.instructor_profile,semester__in=[current_sem,Semester.previous_semester()])
+    return render(request, 'temps/academics/pages/InstructorDashboard/assigned_classes.html',{'assignments':assignments,'current_sem':current_sem})

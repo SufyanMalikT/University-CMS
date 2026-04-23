@@ -1,0 +1,36 @@
+{% extends 'BaseInstructorDashbaord' %}
+
+{% block main_section %}
+<div class="bg-white rounded-[32px] border border-slate-200 overflow-hidden shadow-sm">
+    <table class="w-full text-left border-collapse">
+        <thead class="bg-slate-50/50 border-b border-slate-100">
+            <tr>
+                <th class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Student</th>
+                <th class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Current Marks</th>
+                <th class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Action</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+            {% for enrollment in enrollments %}
+            <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="px-8 py-5">
+                    <p class="font-bold text-slate-900">{{ enrollment.student.name }}</p>
+                    <p class="text-xs font-mono text-slate-400">{{ enrollment.student.roll_number }}</p>
+                </td>
+                <td class="px-8 py-5">
+                    <input type="number" 
+                           name="marks_{{ enrollment.student.id }}" 
+                           placeholder="0.0"
+                           max="{{ assignment.max_marks }}"
+                           class="w-24 bg-slate-100 border-none rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-indigo-600 focus:bg-white transition-all text-center">
+                    <span class="text-xs font-bold text-slate-300 ml-2">/ {{ assignment.max_marks }}</span>
+                </td>
+                <td class="px-8 py-5 text-right">
+                    <span class="text-[10px] font-black text-slate-300 uppercase italic">Awaiting Input</span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

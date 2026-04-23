@@ -1,0 +1,102 @@
+{% extends 'BaseInstructorDashboard.html' %}
+
+
+{% block main_section %}
+<div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div>
+        <h1 class="text-3xl font-black text-slate-900 tracking-tight">Academic Records</h1>
+        <p class="text-slate-500 font-medium">{{current_sem.get_sem}} Semester • <span class="text-indigo-600 font-bold">Faculty Portal</span></p>
+    </div>
+
+    <div class="flex items-center gap-4">
+        <div class="relative hidden lg:block">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            </span>
+            <input type="text" id="courseSearch" placeholder="Search course code or name..." 
+                   class="w-64 bg-white border border-slate-200 rounded-2xl py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm">
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 p-1 shadow-sm flex items-center">
+            <span class="px-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">View Mode</span>
+            <select id="tabToggle" class="bg-slate-50 border-none rounded-xl font-bold text-sm text-slate-700 px-4 py-1.5 focus:ring-0 cursor-pointer">
+                <option value="active">Active Semester</option>
+                <option value="archive">Archive (Prev)</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="courseGrid">
+    {% for assignment in assignments %}
+    <div class="course-card group bg-white rounded-[32px] border border-slate-200 p-6 hover:shadow-2xl hover:shadow-indigo-100/40 transition-all duration-300 flex flex-col justify-between"
+         data-tab="{% if assignment.is_from_current_semester %}active{% else %}archive{% endif %}">
+        
+        <div class="flex justify-between items-start mb-6">
+            <div class="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-black text-slate-500 uppercase tracking-widest group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                {{ assignment.course_by_section.course.course_code }}
+            </div>
+            <span class="text-[10px] font-black {% if assignment.is_from_current_semester %}text-emerald-600{% else %}text-slate-400{% endif %} uppercase tracking-widest">
+                {{ assignment.semester_name }}
+            </span>
+        </div>
+
+        <div class="mb-8">
+            <h3 class="text-xl font-black text-slate-900 leading-tight mb-2">
+                {{ assignment.course_by_section.course.name }}
+            </h3>
+            <div class="flex items-center gap-2 text-slate-500 font-bold text-xs">
+                <span class="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md">{{ assignment.course_by_section.section.section_id }}</span>
+                <span>•</span>
+                <span>{{ assignment.course_by_section.no_of_enrolled_students }} Enrolled</span>
+            </div>
+        </div>
+
+        <div class="pt-6 border-t border-slate-50 flex items-center justify-between gap-2">
+            <a href="{% url 'academics/instructor:attendance_page_for_class' course_by_section_id=assignment.course_by_section.course_code_by_section %}" 
+               class="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-900 text-white rounded-2xl font-bold text-xs hover:bg-slate-800 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                Attendance
+            </a>
+
+            <a href="" 
+               class="flex-1 flex items-center justify-center gap-2 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-xs shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                Upload Marks
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+    const tabToggle = document.getElementById('tabToggle');
+    const courseSearch = document.getElementById('courseSearch');
+    const cards = document.querySelectorAll('.course-card');
+
+    function filterCards() {
+        const selectedTab = tabToggle.value;
+        const searchQuery = courseSearch.value.toLowerCase();
+
+        cards.forEach(card => {
+            const cardTab = card.getAttribute('data-tab');
+            const cardText = card.innerText.toLowerCase();
+            
+            const matchesTab = (selectedTab === cardTab);
+            const matchesSearch = cardText.includes(searchQuery);
+
+            if (matchesTab && matchesSearch) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    tabToggle.addEventListener('change', filterCards);
+    courseSearch.addEventListener('input', filterCards);
+
+    // Run once on load to show active by default
+    filterCards();
+</script>
+{% endblock %}

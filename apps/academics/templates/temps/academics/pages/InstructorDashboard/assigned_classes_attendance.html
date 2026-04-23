@@ -43,8 +43,12 @@
         <div class="pt-6 border-t border-slate-50 flex items-center justify-between">
             <div class="text-left">
                 <p class="text-[10px] text-slate-400 uppercase font-black tracking-tighter">Last Marked</p>
-                {% if assignment.course_by_section.last_session_created_in_days %}
-                    <p class="text-xs font-bold text-slate-700">{{ assignment.course_by_section.last_session_created_in_days }} days ago</p>
+                {% if assignment.course_by_section.last_session_created_in_days == 1 %}
+                <p class="text-xs font-bold text-slate-700">Yesterday</p>
+                {% elif assignment.course_by_section.last_session_created_in_days == 0 %}
+                <p class="text-xs font-bold text-slate-700">Today</p>
+                {% elif assignment.course_by_section.last_session_created_in_days != None %}
+                <p class="text-xs font-bold text-slate-700">{{ assignment.course_by_section.last_session_created_in_days }} days ago</p>
                 {% else %}
                     <p class="text-xs font-bold text-slate-700">Never</p>
                 {% endif %}

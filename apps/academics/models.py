@@ -104,6 +104,10 @@ class Semester(models.Model):
     def latest_semester(cls):
         return cls.objects.latest('end_date')
     
+    @classmethod
+    def previous_semester(cls):
+        return cls.objects.all().order_by('-end_date')[1]
+    
     @property
     def is_past_deadline(self):
         if self.fee_payment_deadline:
@@ -199,7 +203,7 @@ class CourseBySection(models.Model):
         session = ClassSession.objects.filter(
             schedule__course_by_section=self,
             schedule__semester=Semester.latest_semester()
-        ).order_by('created_at')
+        ).order_by('-created_at')
         if session.exists():
             return (timezone.now().date() - session.first().created_at.date()).days
         else:
@@ -237,6 +241,12 @@ class CourseAssignment(models.Model):
     assigned_at = models.DateField(auto_now_add=True)
     result_uploaded = models.BooleanField(default=False)
 
+    @property 
+    def is_from_current_semester(self):
+        if self.semester == Semester.latest_semester():
+            return True
+        else:
+            return False
     class Meta:
         unique_together = ('course_by_section','instructor','semester')
 
