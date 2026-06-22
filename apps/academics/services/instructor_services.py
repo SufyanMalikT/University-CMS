@@ -2,6 +2,7 @@ from ..models import ClassSession, Semester, CourseAssignment, AttendanceEntry
 from ...accounts.models import Student
 from django.shortcuts import get_object_or_404
 from django.db import transaction
+
 @transaction.atomic
 def mark_attendance(course_by_section,schedule, date, absent_students=[]):
     semester = Semester.latest_semester()
@@ -17,3 +18,9 @@ def mark_attendance(course_by_section,schedule, date, absent_students=[]):
         else:
             AttendanceEntry.objects.create(session=session, student=student)
         
+@transaction.atomic
+def validate_and_save_student_marks():
+    pass
+
+
+### [{enrollment_id,student_id,},{},{}] ###

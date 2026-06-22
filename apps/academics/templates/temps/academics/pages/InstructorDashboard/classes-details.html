@@ -69,7 +69,7 @@
                 {% for pending_grade in pending_grading %}
                 <li class="flex items-center gap-3 text-sm text-slate-600">
                     <div class="w-2 h-2 rounded-full bg-amber-400"></div>
-                    {{ pending_grade.title }} ({{ pending_grade.missing_count }} scripts left)
+                    {{ pending_grade.assessment.title }} ({{ pending_grade.missing_count }} scripts left)
                 </li>
                 {% endfor %}
             </ul>

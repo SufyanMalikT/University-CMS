@@ -1,6 +1,25 @@
-{% extends 'BaseInstructorDashbaord' %}
+{% extends 'BaseInstructorDashboard.html' %}
 
 {% block main_section %}
+<div class="w-full bg-slate-50 flex flex-row justify-between px-10 py-4">
+    <div>
+        {% if course_by_section.course.course_type == 'Theory' %}
+            <select name="marks_choice" id="marks_choice" >
+                <option value=""  class='text-grey-500' disabled selected hidden>Choose Assesment Type</option>
+                {% for eval in theory_evaluations %}
+                    <option value="{{eval}}">{{eval}}</option>
+                {%endfor%}
+
+            </select>
+        {% else %}
+        {% endif %}
+        <button id="marks_choice_btn">select</button>
+    </div>
+
+    <div>
+        <a href="{% url 'academics/instructor:assessment_management' course_code_by_section=course_by_section.course_code_by_section %}" class="bg-blue-600 text-white font-mono font-bold rounded-xl py-2 px-4 transition hover:bg-blue-700">Manage Assessments</a>
+    </div>
+</div>
 <div class="bg-white rounded-[32px] border border-slate-200 overflow-hidden shadow-sm">
     <table class="w-full text-left border-collapse">
         <thead class="bg-slate-50/50 border-b border-slate-100">
@@ -14,7 +33,7 @@
             {% for enrollment in enrollments %}
             <tr class="hover:bg-slate-50/50 transition-colors">
                 <td class="px-8 py-5">
-                    <p class="font-bold text-slate-900">{{ enrollment.student.name }}</p>
+                    <p class="font-bold text-slate-900">{{ enrollment.student.user.get_full_name }}</p>
                     <p class="text-xs font-mono text-slate-400">{{ enrollment.student.roll_number }}</p>
                 </td>
                 <td class="px-8 py-5">
@@ -33,4 +52,14 @@
         </tbody>
     </table>
 </div>
+<script>
+    const marks_choice_field = document.querySelector('#marks_choice')
+    const marks_choice_btn = document.querySelector('#marks_choice_btn')
+
+    marks_choice_btn.addEventListener('click', () => {
+        console.log(marks_choice_field.value)
+        
+    })
+
+</script>
 {% endblock %}
