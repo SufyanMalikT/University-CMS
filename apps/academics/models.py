@@ -77,6 +77,7 @@ class Semester(models.Model):
     max_credit_hours = models.PositiveSmallIntegerField(null=True, blank=True)
     is_datesheet_published = models.BooleanField(default=False)
     is_admit_card_published = models.BooleanField(default=False)
+    grading_deadline = models.DateTimeField(null=True, blank=True) # deadline for grades to be locked for the semester
 
     @property
     def get_sem(self):
@@ -117,6 +118,11 @@ class Semester(models.Model):
     @property
     def active_enrollments(self):
         return self.enrollments.filter(status='active')
+    
+    @property
+    def is_past_deadline_for_grading(self):
+        return timezone.now() > self.grading_deadline if self.grading_deadline else False
+    
     def clean(self):
         super().clean()
 
@@ -163,7 +169,7 @@ class CourseBySection(models.Model):
     course_code_by_section = models.PositiveSmallIntegerField()
     created_at = models.DateField(auto_now_add=True)
     no_of_enrolled_students = models.PositiveSmallIntegerField(default=0)
-    semester = models.ForeignKey(Semester, related_name='course_by_section', on_delete=models.PROTECT)
+    semester = models.ForeignKey(Semester, related_name='courby_section', on_delete=models.PROTECT)
 
     @property 
     def available_seats(self):
@@ -193,11 +199,25 @@ class CourseBySection(models.Model):
             missing = total_enrolled - entry['current_count']
             if missing > 0:
                 backlog.append({
-                    'title': entry['title'],
+                    'title': entry['assessment.title'],
                     'missing_count': missing
                 })
 
         return backlog if backlog else None
+    
+    @property # property to check that all the necessary assessments are created of a course by the instructor
+    def grading_scheme_complete(self):
+        required_types = AssessmentType.objects.filter(
+            course_type=self.course.course_type, 
+            is_required=True
+        ).values_list('id', flat=True)
+        created_types = self.assessments.filter(
+            assessment_type__course_type=self.course.course_type, 
+            assessment_type__is_required=True
+        ).values_list('assessment_type_id', flat=True).distinct()
+
+        return set(required_types) == set(created_types)
+
     
     @property
     def last_session_created_in_days(self):
@@ -403,6 +423,8 @@ class AssessmentType(models.Model):
     )
     name = models.CharField(max_length=30)
     course_type = models.CharField(max_length=30, choices=course_type_choices, default='Theory')
+    is_requried = models.BooleanField(default=False)
+    is_unique = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.name} - {self.course_type}"
@@ -416,6 +438,8 @@ class Assessment(models.Model):
     def clean(self):
         super().clean()
 
+        if not self.course_by_section_id:
+            return
         if self.assessment_type and self.assessment_type.course_type != self.course_by_section.course.course_type:
             raise ValidationError("This assessment type cannot be used with this course type")
 
@@ -424,6 +448,18 @@ class Assessment(models.Model):
         self.full_clean()
         super().save(*args, **kwargs)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields = ['course_by_section','title'],
+                name='unique_title_per_assessment'
+            ),
+        ]
+
+    @property
+    def is_modifiable(self):
+        return not self.mark_entries.exists()
+    
     def __str__(self):
         return f"{self.title} - {self.course_by_section.course.name} - {self.assessment_type.name}"
 
@@ -432,27 +468,26 @@ class MarkEntry(models.Model):
     assessment = models.ForeignKey(Assessment, related_name='mark_entries', on_delete=models.PROTECT)
     obtained_marks = models.DecimalField(max_digits=5, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
-    is_locked = models.BooleanField(default=False)
 
     def clean(self):
-        super().clean()
-        if self.enrollment.status != 'active':
+        super().clean()     
+        if self.enrollment_id and self.enrollment.status != 'active':
             raise ValidationError("You cannot grade an inactive enrollment!")
-        
         if self.pk:
+            
             old = MarkEntry.objects.filter(pk=self.pk).first()
             if old and old.is_locked:
                 raise ValidationError("This mark entry is locked.")
             
         if (
-            self.enrollment.course_by_section
+            self.enrollment_id and self.enrollment.course_by_section
             != self.assessment.course_by_section
         ):
             raise ValidationError(
                 "Assessment does not belong to this course."
             )
 
-        if self.obtained_marks > self.assessment.total_marks:
+        if self.assessment_id and self.obtained_marks > self.assessment.total_marks:
             raise ValidationError(
                 f"Marks cannot exceed "
                 f"{self.assessment.total_marks}."
