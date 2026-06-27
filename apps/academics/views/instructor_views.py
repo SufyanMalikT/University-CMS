@@ -148,3 +148,26 @@ def mark_entry_by_assessment_page_view(request,pk):
 
     data = zip(enrollments, formset)
     return render(request, 'temps/academics/pages/InstructorDashboard/marks_by_assessments.html',{'data':data,'formset':formset,'assessment':assessment})
+
+@login_required
+@instructor_only
+def grade_book_by_section(request,pk):
+    course_by_section = get_object_or_404(CourseBySection, pk=pk)
+    assessments = course_by_section.assessments.all()
+
+    gradebook = []
+    enrollments = course_by_section.enrollments.filter(status='active')
+
+    for enrollment in enrollments:
+        row = {   
+            'enrollment':enrollment
+        }
+        for assessment in assessments:
+            row = row | {
+                f'{assessment.title}':assessment.mark_entries.filter(enrollment__student=enrollment.student)
+            }
+        row = row | {
+            'grade':enrollment.grade
+        }
+        gradebook.append(row)
+    return render(request, 'temps/academics/pages/InstructorDashboard/grade_book.html',{'course_by_section':course_by_section,'assessments':assessments,'gradebook':gradebook})

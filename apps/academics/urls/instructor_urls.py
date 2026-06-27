@@ -2,7 +2,8 @@ from django.urls import path
 from ..views.instructor_views import instructor_overview_page, classes_details_page, \
                                     attendance_page_for_class, mark_attendance_view, \
                                     assigned_courses_page, assessment_management_page_view, \
-                                    update_assessment_page_view, delete_assessment_view, mark_entry_by_assessment_page_view
+                                    update_assessment_page_view, delete_assessment_view, mark_entry_by_assessment_page_view, \
+                                    grade_book_by_section
 app_name = 'academics/instructor'
 urlpatterns = [
     path('',instructor_overview_page, name='instructor_dashboard'),
@@ -14,4 +15,5 @@ urlpatterns = [
     path('class/assessment/<int:pk>/update',update_assessment_page_view, name='update_assessment'),
     path('class/assessment/<int:pk>/delete',delete_assessment_view, name='delete_assessment'),
     path('class/assessment/<int:pk>/upload_marks',mark_entry_by_assessment_page_view, name='upload_marks_by_assessment'),
+    path('class/gradebook/<int:pk>',grade_book_by_section, name='grade_book')
 ]

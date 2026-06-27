@@ -11,19 +11,23 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+from dotenv import load_dotenv
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(BASE_DIR / ".env")
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-20@pfxfcazd3ks+tl0ck8yn2j+wu98%t++e#x&cdf)sb#fc-lu'
+SECRET_KEY = os.getenv('MY_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG') == True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
@@ -127,6 +131,6 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
 
-# STRIPE_PUBLIC_KEY="pk_test_51T3A6lRBMKc7YNWe1xw7qA2JpVXSF1dpGaGP1YODjWxrs1gK4Raq0p7WAEF3a83HGbgLbyPezEp2kvDkEkjc3Vgf00ZCarJwoQ"
-STRIPE_SECRET_KEY="sk_test_51T3A6lRBMKc7YNWetPXUIIXsmJHSe0QtFcYqOenR4tSzt2AD9bxX3eyh5Hr5XE0ZcYXMCIzflgkchdiMGucK2wrZ00Hbq003UV"
-STRIPE_WEBHOOK_KEY="whsec_290ab533ba9ec0257a276809213a19d51387dce25e0de1e1689a153bec2e58a1"
+# STRIPE_PUBLIC_KEY=os.getenv('MY_STRIPE_PUBLIC_KEY')
+STRIPE_SECRET_KEY=os.getenv('MY_STRIPE_SECRET_KEY')
+STRIPE_WEBHOOK_KEY=os.getenv('MY_STRIPE_WEBHOOK_KEY')

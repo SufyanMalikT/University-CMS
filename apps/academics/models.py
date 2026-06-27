@@ -314,9 +314,9 @@ class Enrollment(models.Model):
         
     @property
     def percentage(self):
-        data = self.marks.filter(is_locked=True).aggregate(
+        data = self.marks.aggregate(
             obtained=Sum('obtained_marks'),
-            total=Sum('total_marks')
+            total=Sum('assessment__total_marks')
         )
         obtained = data['obtained'] or 0
         total = data['total'] or 0
