@@ -1,0 +1,99 @@
+{% load static %}
+{% block sidebar %}
+<aside id='sidebar' class="hidden md:flex flex-col bg-white border-r border-gray-200 fixed top-0 left-0 h-screen w-72 shadow-sm z-100">
+    
+    <div class="flex flex-row justify-between">
+        <div class="p-6 border-b border-gray-100">
+            <h1 class="text-xl font-bold text-slate-800 tracking-tight">Student<span class="text-blue-600">Portal</span></h1>
+            <p class="text-xs text-gray-400 uppercase tracking-widest font-semibold mt-1">Management System</p>
+        </div>
+        <button id="close-sb-btn" class="md:hidden w-8 mr-4">
+            <img src="{% static 'app1/img/cross.png' %}">
+        </button>
+    </div>
+
+
+    <div class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+            <a href="{% url 'student_dashboard' %}" class="submenu-toggle w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-gray-50 rounded-lg transition-all group">
+                <div class="flex items-center">
+                    <span class="fa-solid fa-magnifying-glass-chart mr-3"></span>
+                     Overview
+                </div>
+            </a>
+        <div class="menu-group">
+            <button class="submenu-toggle w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-gray-50 rounded-lg transition-all group">
+                <div class="flex items-center">
+                    <span class="mr-3">📚</span> My Academics
+                </div>
+                <svg class="w-4 h-4 transform transition-transform duration-200 arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div class="submenu hidden flex-col mt-1 ml-4 border-l-2 border-gray-100 space-y-1">
+                <a href="{% url 'add_classes' %}" class="block px-6 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg">Add Classes</a>
+                <a href="{% url 'cart' %}" class="block px-6 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg">Your Cart</a>
+                <a href="{% url 'review_classes_by_semester' %}" class="block px-6 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg">Review Classes</a>
+                <a href="{% url 'drop_course' %}" class="block px-6 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg">Drop Classes</a>
+            </div>
+        </div>
+
+        <div class="menu-group">
+            <button class="submenu-toggle w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-gray-50 rounded-lg transition-all">
+                <div class="flex items-center">
+                    <span class="mr-3">💳</span> Enrollment & Fees
+                </div>
+                <svg class="w-4 h-4 transform transition-transform duration-200 arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div class="submenu hidden flex-col mt-1 ml-4 border-l-2 border-gray-100 space-y-1">
+                <!-- <a href="#" class="block px-6 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg">Fee Vouchers</a> -->
+                <a href="{% url 'voucher_history' %}" class="block px-6 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg">Payment History</a>
+            </div>
+        </div>
+
+        <div class="menu-group">
+            <button class="submenu-toggle w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-gray-50 rounded-lg transition-all">
+                <div class="flex items-center">
+                    <span class="mr-3">📝</span> Examinations
+                </div>
+                <svg class="w-4 h-4 transform transition-transform duration-200 arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div class="submenu hidden flex-col mt-1 ml-4 border-l-2 border-gray-100 space-y-1">
+                <a href="{% url 'result' %}" class="block px-6 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg">View Results</a>
+                <a href="{% url 'date_sheet' %}" class="block px-6 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg">Date Sheet</a>
+                <a href="{% url 'admit_card' %}" class="block px-6 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-r-lg">Admit Card</a>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="p-4 border-t border-gray-100 bg-gray-50">
+        <div class="flex items-center">
+            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                {{ request.user.first_name|first }}
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-bold text-slate-800">{{ request.user.get_full_name }}</p>
+                <a href="{% url 'accounts:logout' %}" class="text-xs text-red-500 hover:underline">Sign Out</a>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<script>
+    // Modern Dropdown Logic
+    document.querySelectorAll('.submenu-toggle').forEach(button => {
+        button.addEventListener('click', () => {
+            const submenu = button.nextElementSibling;
+            const arrow = button.querySelector('.arrow');
+            
+            // Toggle visibility
+            submenu.classList.toggle('hidden');
+            submenu.classList.toggle('flex');
+            
+            // Rotate arrow
+            arrow.classList.toggle('rotate-180');
+            
+            // Optional: Soft background for active parent
+            button.classList.toggle('bg-gray-100');
+        });
+    });
+</script>
+{% endblock %}

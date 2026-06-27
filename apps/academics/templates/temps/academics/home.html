@@ -1,12 +1,60 @@
-{% include 'base.html' %}
+{% extends 'base.html' %}
 
-{% block content%}
-    {% for student in students %}
-        <table>
-            <tr>
-                <td>{{student.name}}</td>
-                <td>{{student.age}}</td>
-            </tr>
-        </table>
-    {% endfor %}
+{% block content %}
+<nav class="flex items-center justify-between px-10 py-6 bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-100">
+    <div class="flex items-center gap-2">
+        <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
+            <span class="text-white font-black text-xl">U</span>
+        </div>
+        <span class="font-black text-slate-800 text-xl tracking-tight">Uni<span class="text-indigo-600">CMS</span></span>
+    </div>
+    <div class="hidden md:flex gap-8 text-sm font-bold text-slate-500">
+        <a href="#" class="hover:text-indigo-600 transition-colors">Academic Calendar</a>
+        <a href="#" class="hover:text-indigo-600 transition-colors">Admissions</a>
+        <a href="#" class="hover:text-indigo-600 transition-colors">Support</a>
+    </div>
+    <a href="{% url 'accounts:login' %}" class="px-6 py-2.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-all shadow-xl shadow-slate-200">
+        Sign In
+    </a>
+</nav>
+
+<main class="bg-slate-50 min-h-screen">
+    <section class="px-6 pt-20 pb-32 text-center max-w-5xl mx-auto">
+        <span class="inline-block px-4 py-1.5 bg-indigo-50 text-indigo-600 rounded-full text-xs font-black uppercase tracking-widest mb-6">
+            Next-Gen Academic Management
+        </span>
+        <h1 class="text-5xl md:text-7xl font-black text-slate-900 mb-8 leading-[1.1]">
+            Empowering the future of <br/>
+            <span class="text-indigo-600 italic">Academic Excellence.</span>
+        </h1>
+        <p class="text-lg text-slate-500 max-w-2xl mx-auto mb-12 font-medium leading-relaxed">
+            A unified platform for students and faculty to manage attendance, grading, 
+            course resources, and schedules with seamless efficiency.
+        </p>
+        
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a href="{% url 'accounts:login' %}" class="w-full sm:w-auto px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black text-lg shadow-2xl shadow-indigo-200 hover:scale-105 transition-transform">
+                Faculty Portal
+            </a>
+            <a href="{% url 'accounts:login' %}" class="w-full sm:w-auto px-8 py-4 bg-white border-2 border-slate-200 text-slate-900 rounded-2xl font-black text-lg hover:bg-slate-50 transition-colors">
+                Student Portal
+            </a>
+        </div>
+    </section>
+
+    <section class="px-10 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 pb-20">
+        <div class="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm text-center">
+            <div class="text-4xl font-black text-slate-900 mb-2">15k+</div>
+            <div class="text-slate-400 font-bold uppercase text-xs tracking-widest">Active Students</div>
+        </div>
+        <div class="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm text-center">
+            <div class="text-4xl font-black text-indigo-600 mb-2">450+</div>
+            <div class="text-slate-400 font-bold uppercase text-xs tracking-widest">Expert Faculty</div>
+        </div>
+        <div class="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm text-center">
+            <div class="text-4xl font-black text-slate-900 mb-2">120+</div>
+            <div class="text-slate-400 font-bold uppercase text-xs tracking-widest">Degree Programs</div>
+        </div>
+    </section>
+</main>
 {% endblock %}

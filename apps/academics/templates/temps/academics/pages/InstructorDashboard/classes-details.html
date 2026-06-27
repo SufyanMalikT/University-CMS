@@ -1,0 +1,82 @@
+{% extends 'BaseInstructorDashboard.html' %}
+
+{% block main_section %}
+<div class="mb-8 flex justify-between items-end">
+    <div>
+        <h1 class="text-3xl font-black text-slate-900">{{class.course.name}}</h1>
+        <p class="text-slate-500 font-medium">Section: <span class="text-indigo-600 font-bold">{{ class.section.section_id }}</span> • Credit Hours: {{class.course.credit_hours}}</p>
+    </div>
+    <div class="flex gap-3">
+        <a href="{% url 'academics/instructor:attendance_page_for_class' course_by_section_id=class.course_code_by_section %}" class="px-5 py-2.5 bg-indigo-600 text-white rounded-2xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">
+            Mark Attendance
+        </a>
+        <button class="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-2xl font-bold text-sm hover:bg-slate-50 transition-all">
+            Post Announcement
+        </button>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <div class="lg:col-span-2 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+            <h2 class="font-black text-slate-800 uppercase tracking-tight">Enrolled Students</h2>
+            <input type="text" placeholder="Search student..." class="px-4 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+        </div>
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-slate-50 text-[10px] uppercase font-bold text-slate-400">
+                <tr>
+                    <th class="px-6 py-3">Student Name</th>
+                    <th class="px-6 py-3">Roll Number</th>
+                    <th class="px-6 py-3 text-center">Attendance</th>
+                    <th class="px-6 py-3 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm text-slate-600">
+            {% for enrollment in class.enrollments.all %}
+                <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                    <td class="px-6 py-4 font-bold text-slate-900">{{ enrollment.student.user.get_full_name }}</td>
+                    <td class="px-6 py-4">{{ enrollment.student.roll_no }}</td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="px-2 py-1 bg-emerald-50 text-emerald-600 rounded-lg font-bold text-xs">{{enrollment.student_attendance_rate|stringformat:'.0f' }}%</span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button class="text-indigo-600 hover:underline font-bold">Profile</button>
+                    </td>
+                </tr>
+                </tbody>
+                {% endfor %}
+        </table>
+    </div>
+
+    <div class="space-y-6">
+        <div class="bg-indigo-600 p-6 rounded-3xl text-white shadow-xl shadow-indigo-100">
+            <h3 class="font-bold text-indigo-100 text-xs uppercase mb-4">Weekly Schedule</h3>
+            <div class="space-y-4">
+                {% for schedule in class.schedules.all %}
+                <div class="flex justify-between border-b border-indigo-500/30 pb-2">
+                    <span class="font-medium text-sm">{{ schedule.day_of_the_week }}</span>
+                    <span class="font-bold text-sm">{{ schedule.start_time }} - {{schedule.end_time}}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+            <h3 class="font-black text-slate-800 text-xs uppercase mb-3">Pending Grading</h3>
+            {% if pending_grading != None %}
+            <ul class="space-y-3">
+                {% for pending_grade in pending_grading %}
+                <li class="flex items-center gap-3 text-sm text-slate-600">
+                    <div class="w-2 h-2 rounded-full bg-amber-400"></div>
+                    {{ pending_grade.assessment.title }} ({{ pending_grade.missing_count }} scripts left)
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-gray-300">No Pending Grading</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

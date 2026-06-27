@@ -1,0 +1,101 @@
+{% extends 'BaseInstructorDashboard.html' %}
+
+{% block main_section %}
+
+<div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-8">
+
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">
+            Update Assessment
+        </h1>
+
+        <p class="text-gray-500 mt-2">
+            Modify assessment details and save changes.
+        </p>
+    </div>
+
+    <div class="mb-6 p-4 rounded-lg bg-slate-50 border border-slate-200">
+        <h3 class="font-semibold text-lg">
+            {{ assessment.course_by_section.course.name }}
+        </h3>
+
+        <p class="text-gray-500">
+            Section {{ assessment.course_by_section.section.section_id }}
+        </p>
+    </div>
+
+    <form method="POST" class="space-y-6">
+
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="bg-red-50 border border-red-200 text-red-600 rounded-lg p-4">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <div>
+            <label class="block text-sm font-medium mb-2">
+                Title
+            </label>
+
+            {{ form.title }}
+
+            {% if form.title.errors %}
+                <p class="text-red-500 text-sm mt-1">
+                    {{ form.title.errors.0 }}
+                </p>
+            {% endif %}
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium mb-2">
+                Assessment Type
+            </label>
+
+            {{ form.assessment_type }}
+
+            {% if form.assessment_type.errors %}
+                <p class="text-red-500 text-sm mt-1">
+                    {{ form.assessment_type.errors.0 }}
+                </p>
+            {% endif %}
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium mb-2">
+                Total Marks
+            </label>
+
+            {{ form.total_marks }}
+
+            {% if form.total_marks.errors %}
+                <p class="text-red-500 text-sm mt-1">
+                    {{ form.total_marks.errors.0 }}
+                </p>
+            {% endif %}
+        </div>
+
+        <div class="flex gap-3 pt-4">
+
+            <button
+                type="submit"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium transition"
+            >
+                Save Changes
+            </button>
+
+            <a
+                href="{% url 'academics/instructor:assessment_management' course_code_by_section=assessment.course_by_section.course_code_by_section %}"
+                class="bg-slate-200 hover:bg-slate-300 px-6 py-3 rounded-lg font-medium transition"
+            >
+                Cancel
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

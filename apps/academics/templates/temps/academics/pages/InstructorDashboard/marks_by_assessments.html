@@ -1,0 +1,136 @@
+{% extends 'BaseInstructorDashboard.html' %}
+
+{% block main_section %}
+
+<div class="space-y-6">
+
+    <!-- Assessment Info -->
+    <div class="bg-white rounded-2xl shadow-lg p-6">
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">
+                    {{ assessment.title }}
+                </h1>
+
+                <p class="text-gray-500 mt-1">
+                    {{ assessment.course_by_section.course.name }}
+                    -
+                    {{ assessment.course_by_section.section.section_id }}
+                </p>
+            </div>
+
+            <div class="text-right">
+                <p class="text-sm text-gray-500">
+                    Total Marks
+                </p>
+
+                <p class="text-2xl font-bold text-indigo-600">
+                    {{ assessment.total_marks }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Errors -->
+    {% if formset.non_form_errors %}
+        <div class="bg-red-50 border border-red-200 text-red-600 rounded-xl p-4">
+            {{ formset.non_form_errors }}
+        </div>
+    {% endif %}
+
+    <!-- Marking Form -->
+    <form method="POST">
+
+        {% csrf_token %}
+        {{ formset.management_form }}
+
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+
+            <div class="p-5 border-b">
+                <h2 class="font-semibold text-lg">
+                    Student Marks Entry
+                </h2>
+            </div>
+
+            <table class="w-full">
+
+                <thead class="bg-slate-50">
+                    <tr class="[&>th]:p-4 text-left text-sm uppercase tracking-wide text-gray-500">
+                        <th>#</th>
+                        <th>Student</th>
+                        <th>Roll No</th>
+                        <th>Marks Obtained</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for enrollment,form in data%}
+
+                        <tr class="border-t hover:bg-slate-50">
+
+                            {{ form.id }}
+
+                            <td class="p-4 text-gray-400 font-medium">
+                                {{ forloop.counter }}
+                            </td>
+
+                            <td class="p-4">
+                                {{ enrollment.student.user.get_full_name }}
+                            </td>
+
+                            <td class="p-4 text-gray-500">
+                                {{ enrollment.student.roll_no }}
+                            </td>
+
+                            <td class="p-4">
+
+                                {{ form.obtained_marks }}
+
+                                {% if form.obtained_marks.errors %}
+                                    <p class="text-red-500 text-sm mt-1">
+                                        {{ form.obtained_marks.errors.0 }}
+                                    </p>
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="4" class="p-8 text-center text-gray-500">
+                                No enrolled students found.
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end gap-3 mt-6">
+
+            <a href="{% url 'academics/instructor:assessment_management' course_code_by_section=assessment.course_by_section.course_code_by_section %}"
+               class="px-5 py-3 rounded-lg bg-slate-200 hover:bg-slate-300 font-medium">
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="px-6 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+            >
+                Save Marks
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

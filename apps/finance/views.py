@@ -9,7 +9,7 @@ from .services import delete_unpaid_fee_voucher
 import stripe
 from django.contrib import messages
 from django.db import transaction
-from ..academics.services import enroll_student
+from ..academics.services.student_services import enroll_student
 from django.urls import reverse
 from django.db.models import Sum
 # Create your views here.

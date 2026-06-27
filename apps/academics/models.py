@@ -77,6 +77,7 @@ class Semester(models.Model):
     max_credit_hours = models.PositiveSmallIntegerField(null=True, blank=True)
     is_datesheet_published = models.BooleanField(default=False)
     is_admit_card_published = models.BooleanField(default=False)
+    grading_deadline = models.DateTimeField(null=True, blank=True) # deadline for grades to be locked for the semester
 
     @property
     def get_sem(self):
@@ -104,6 +105,10 @@ class Semester(models.Model):
     def latest_semester(cls):
         return cls.objects.latest('end_date')
     
+    @classmethod
+    def previous_semester(cls):
+        return cls.objects.all().order_by('-end_date')[1]
+    
     @property
     def is_past_deadline(self):
         if self.fee_payment_deadline:
@@ -113,6 +118,11 @@ class Semester(models.Model):
     @property
     def active_enrollments(self):
         return self.enrollments.filter(status='active')
+    
+    @property
+    def is_past_deadline_for_grading(self):
+        return timezone.now() > self.grading_deadline if self.grading_deadline else False
+    
     def clean(self):
         super().clean()
 
@@ -159,6 +169,7 @@ class CourseBySection(models.Model):
     course_code_by_section = models.PositiveSmallIntegerField()
     created_at = models.DateField(auto_now_add=True)
     no_of_enrolled_students = models.PositiveSmallIntegerField(default=0)
+    semester = models.ForeignKey(Semester, related_name='courby_section', on_delete=models.PROTECT)
 
     @property 
     def available_seats(self):
@@ -169,6 +180,64 @@ class CourseBySection(models.Model):
 
         return self.section.limit_of_students - (self.no_of_enrolled_students + pending_seats)
     
+    
+    @property
+    def pending_grading(self):
+    
+        # 1. Get the total number of students who SHOULD have marks
+        total_enrolled = self.enrollments.filter(status='active').count() # Assuming 'self' is the CourseBySection
+        if total_enrolled == 0:
+            return None
+
+        # 2. Get counts for every title already in the system
+        title_counts = MarkEntry.objects.filter(
+            enrollment__course_by_section=self
+        ).values('assessment').annotate(current_count=Count('id'))
+
+        backlog = []
+        for entry in title_counts:
+            missing = total_enrolled - entry['current_count']
+            if missing > 0:
+                backlog.append({
+                    'title': entry['assessment.title'],
+                    'missing_count': missing
+                })
+
+        return backlog if backlog else None
+    
+    @property # property to check that all the necessary assessments are created of a course by the instructor
+    def grading_scheme_complete(self):
+        required_types = AssessmentType.objects.filter(
+            course_type=self.course.course_type, 
+            is_required=True
+        ).values_list('id', flat=True)
+        created_types = self.assessments.filter(
+            assessment_type__course_type=self.course.course_type, 
+            assessment_type__is_required=True
+        ).values_list('assessment_type_id', flat=True).distinct()
+
+        return set(required_types) == set(created_types)
+
+    
+    @property
+    def last_session_created_in_days(self):
+        session = ClassSession.objects.filter(
+            schedule__course_by_section=self,
+            schedule__semester=Semester.latest_semester()
+        ).order_by('-created_at')
+        if session.exists():
+            return (timezone.now().date() - session.first().created_at.date()).days
+        else:
+            return None
+
+    @property
+    def sessions_current_semester(self):
+        sessions_count = ClassSession.objects.filter(
+            schedule__course_by_section=self,
+            schedule__semester=Semester.latest_semester()
+        ).count()
+        return sessions_count
+                                  
     def clean(self):
         super().clean()
 
@@ -191,7 +260,14 @@ class CourseAssignment(models.Model):
     instructor = models.ForeignKey('accounts.Instructor', related_name='assignments',on_delete=models.CASCADE)
     semester = models.ForeignKey(Semester, related_name='assignments', on_delete=models.CASCADE)
     assigned_at = models.DateField(auto_now_add=True)
+    result_uploaded = models.BooleanField(default=False)
 
+    @property 
+    def is_from_current_semester(self):
+        if self.semester == Semester.latest_semester():
+            return True
+        else:
+            return False
     class Meta:
         unique_together = ('course_by_section','instructor','semester')
 
@@ -238,9 +314,9 @@ class Enrollment(models.Model):
         
     @property
     def percentage(self):
-        data = self.marks.filter(is_locked=True).aggregate(
+        data = self.marks.aggregate(
             obtained=Sum('obtained_marks'),
-            total=Sum('total_marks')
+            total=Sum('assessment__total_marks')
         )
         obtained = data['obtained'] or 0
         total = data['total'] or 0
@@ -307,6 +383,14 @@ class Enrollment(models.Model):
             grade = 0.0 
         return grade
 
+    @property
+    def student_attendance_rate(self):
+        total_student_presents = self.student.attendance.filter(session__schedule__course_by_section=self.course_by_section,session__schedule__semester=self.semester,was_present=True).aggregate(total=Count('id'))['total']
+        total_sessions = self.student.attendance.filter(session__schedule__course_by_section=self.course_by_section,session__schedule__semester=self.semester).aggregate(total=Count('id'))['total']
+        if total_sessions == 0:
+            return None
+        return (total_student_presents/total_sessions) * 100
+    
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -331,58 +415,83 @@ class Enrollment(models.Model):
 
     def __str__(self):
         return f"{self.student.user.username} is enrolled in {self.course_by_section.course.name}"
-    
-class MarkEntry(models.Model):
-    theory_category_choices = (
-        ('Assignment','Assignment'),
-        ('Participation','Participation'),
-        ('Presentation','Presentation'),
-        ('Project','Project'),
-        ('Midterm','Midterm'),
-        ('Finalterm','Finalterm'),
-    )
-    lab_category_choices = (
-        ('LabExam','LabExam'),
-        ('LabAtt','LabAtt'),
-        ('LabViva','LabViva'),
-        ('LabManual','LabManual'),
-    )
 
-    all_category_choices = theory_category_choices + lab_category_choices
+class AssessmentType(models.Model):
+    course_type_choices = (
+        ('Theory','Theory'),
+        ('Lab','Lab')
+    )
+    name = models.CharField(max_length=30)
+    course_type = models.CharField(max_length=30, choices=course_type_choices, default='Theory')
+    is_requried = models.BooleanField(default=False)
+    is_unique = models.BooleanField(default=False)
 
-    enrollment = models.ForeignKey(Enrollment, related_name='marks', on_delete=models.CASCADE)
-    category = models.CharField(max_length=20,choices=all_category_choices)
+    def __str__(self):
+        return f"{self.name} - {self.course_type}"
+
+class Assessment(models.Model):
     title = models.CharField(max_length=30)
-    obtained_marks = models.DecimalField(max_digits=5, decimal_places=2)
-    total_marks = models.DecimalField(max_digits=5, decimal_places=2)
-    created_at = models.DateTimeField(auto_now_add=True)
-    is_locked = models.BooleanField(default=False)
+    course_by_section = models.ForeignKey(CourseBySection, related_name='assessments', on_delete=models.CASCADE)
+    assessment_type = models.ForeignKey(AssessmentType, related_name='assessments', on_delete=models.PROTECT)
+    total_marks = models.PositiveBigIntegerField()
 
     def clean(self):
-        if self.pk:
-            original_entry = MarkEntry.objects.get(pk=self.pk)
-            if original_entry.is_locked:
-                raise ValidationError("This mark entry is locked, it cannot be modified")
         super().clean()
 
-        theory_keys = [choice[0] for choice in self.theory_category_choices]
-        lab_keys = [choice[0] for choice in self.lab_category_choices]
+        if not self.course_by_section_id:
+            return
+        if self.assessment_type and self.assessment_type.course_type != self.course_by_section.course.course_type:
+            raise ValidationError("This assessment type cannot be used with this course type")
 
-        if self.enrollment.course_by_section.course.course_type == 'Theory' and self.category in lab_keys:
-            raise ValidationError("Cannot choose a category for lab courses for a theory course")
         
-        if self.enrollment.course_by_section.course.course_type == 'Lab' and self.category in theory_keys:
-            raise ValidationError("Cannot choose a category for theory courses for a lab course")
-        
-        if self.total_marks < self.obtained_marks:
-            raise ValidationError("Obtained marks can\'t be greater than total marks")
-        
-        if self.total_marks is not None and self.obtained_marks is not None:
-            if self.obtained_marks > self.total_marks:
-                raise ValidationError(f"Score ({self.obtained_marks}) cannot exceed the total possible marks ({self.total_marks}).")
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields = ['course_by_section','title'],
+                name='unique_title_per_assessment'
+            ),
+        ]
+
+    @property
+    def is_modifiable(self):
+        return not self.mark_entries.exists()
+    
+    def __str__(self):
+        return f"{self.title} - {self.course_by_section.course.name} - {self.assessment_type.name}"
+
+class MarkEntry(models.Model):
+    enrollment = models.ForeignKey(Enrollment, related_name='marks', on_delete=models.CASCADE)
+    assessment = models.ForeignKey(Assessment, related_name='mark_entries', on_delete=models.PROTECT)
+    obtained_marks = models.DecimalField(max_digits=5, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def clean(self):
+        super().clean()     
+        if self.enrollment_id and self.enrollment.status != 'active':
+            raise ValidationError("You cannot grade an inactive enrollment!")
+        if self.pk:
             
-            if self.total_marks <= 0:
-                raise ValidationError("Total marks for an entry must be greater than zero.")
+            old = MarkEntry.objects.filter(pk=self.pk).first()
+            if old and old.is_locked:
+                raise ValidationError("This mark entry is locked.")
+            
+        if (
+            self.enrollment_id and self.enrollment.course_by_section
+            != self.assessment.course_by_section
+        ):
+            raise ValidationError(
+                "Assessment does not belong to this course."
+            )
+
+        if self.assessment_id and self.obtained_marks > self.assessment.total_marks:
+            raise ValidationError(
+                f"Marks cannot exceed "
+                f"{self.assessment.total_marks}."
+            )
     
 
     def save(self, *args, **kwargs):
@@ -390,10 +499,15 @@ class MarkEntry(models.Model):
         super().save(*args, **kwargs)
 
     class Meta:
-        unique_together = ('enrollment','category')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['enrollment','assessment'],
+                name='unique_mark_per_assessment'
+            )
+        ]
 
     def __str__(self):
-        return f"{self.title} - {self.enrollment.student.user.username}"
+        return f"{self.assessment.title} - {self.enrollment.student.user.username}"
     
 
 class ClassSchedule(models.Model):

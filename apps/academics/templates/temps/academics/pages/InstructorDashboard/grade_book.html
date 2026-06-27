@@ -1,0 +1,176 @@
+{% extends "BaseInstructorDashboard.html" %}
+
+{% block main_section %}
+
+<div class="space-y-6">
+
+    <!-- Header -->
+    <div class="bg-white rounded-2xl shadow p-6 flex justify-between items-center">
+
+        <div>
+            <h1 class="text-3xl font-bold">
+                Gradebook
+            </h1>
+
+            <p class="text-gray-500 mt-1">
+                {{ course_by_section.course.name }}
+                •
+                {{ course_by_section.section.section_id }}
+            </p>
+        </div>
+
+        <a href="{% url 'academics/instructor:assessment_management' course_code_by_section=course_by_section.course_code_by_section %}"
+           class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg">
+            Assessments
+        </a>
+
+    </div>
+
+
+    <!-- Table -->
+
+    <div class="bg-white rounded-2xl shadow overflow-auto">
+
+        <table class="min-w-full">
+
+            <thead class="bg-gray-100">
+
+                <tr class="text-sm text-gray-600">
+
+                    <th class="px-5 py-3 text-left">
+                        #
+                    </th>
+
+                    <th class="px-5 py-3 text-left">
+                        Student
+                    </th>
+
+                    <th class="px-5 py-3 text-left">
+                        Roll No.
+                    </th>
+
+                    {% for assessment in assessments %}
+
+                        <th class="px-5 py-3 text-center whitespace-nowrap">
+
+                            <div class="font-semibold">
+
+                                {{ assessment.title }}
+
+                            </div>
+
+                            <div class="text-xs text-gray-400">
+
+                                / {{ assessment.total_marks }}
+
+                            </div>
+
+                        </th>
+
+                    {% endfor %}
+
+                    <th class="px-5 py-3 text-center">
+                        Total
+                    </th>
+
+                    <th class="px-5 py-3 text-center">
+                        %
+                    </th>
+
+                    <th class="px-5 py-3 text-center">
+                        Grade
+                    </th>
+
+                    <th class="px-5 py-3 text-center">
+                        GPA
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+            {% for row in gradebook %}
+
+                <tr class="border-b hover:bg-gray-50">
+
+                    <td class="px-5 py-4">
+
+                        {{ forloop.counter }}
+
+                    </td>
+
+                    <td class="px-5 py-4 font-medium">
+
+                        {{ row.enrollment.student.user.get_full_name }}
+
+                    </td>
+
+                    <td class="px-5 py-4">
+
+                        {{ row.enrollment.student.user.username }}
+
+                    </td>
+
+                    {% for assessment in assessments %}
+
+                        <td class="text-center px-5 py-4">
+
+                            {{ row.marks}}
+
+                        </td>
+
+                    {% endfor %}
+
+                    <td class="text-center font-semibold">
+
+                        {{ row.total }}
+
+                    </td>
+
+                    <td class="text-center">
+
+                        {{ row.percentage }}%
+
+                    </td>
+
+                    <td class="text-center font-bold">
+
+                        {{ row.grade }}
+
+                    </td>
+
+                    <td class="text-center">
+
+                        {{ row.gpa }}
+
+                    </td>
+
+                </tr>
+
+            {% empty %}
+
+                <tr>
+
+                    <td colspan="100%"
+                        class="text-center py-10 text-gray-500">
+
+                        No students enrolled.
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

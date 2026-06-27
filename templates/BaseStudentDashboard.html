@@ -1,11 +1,15 @@
 {% extends 'base.html' %}
 
+{% load instructor_tags %}
+{% block title %}
+    {% block student_title %} {% endblock %}
+{% endblock %}
 {% block content %}
     <div class="min-w-screen min-h-screen bg-gray-300">
-        {% include 'temps/academics/components/StudentDashboard/navbar.html'%}
+        {% include 'comps/StudentDashboard/navbar.html'%}
         {% block navbar %}{% endblock %}
 
-        {% include 'temps/academics/components/StudentDashboard/sidebar.html' with page_name=page_name%}
+        {% include 'comps/StudentDashboard/sidebar.html' with page_name=page_name%}
         {% block sidebar %}{% endblock %}
 
         <section class="pt-16 md:ml-70 pr-0">
