@@ -53,17 +53,18 @@
         </div>
 
         <div class="pt-6 border-t border-slate-50 flex items-center justify-between gap-2">
-            <a href="{% url 'academics/instructor:attendance_page_for_class' course_by_section_id=assignment.course_by_section.course_code_by_section %}" 
+            <a href="{% url 'academics/instructor:grade_book' pk=assignment.course_by_section.id %}" 
                class="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-900 text-white rounded-2xl font-bold text-xs hover:bg-slate-800 transition-all">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                Attendance
+                View Grades
             </a>
-
-            <a href="{% url 'academics/instructor:assessment_management' course_code_by_section=assignment.course_by_section.course_code_by_section %}" 
-               class="flex-1 flex items-center justify-center gap-2 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-xs shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                Upload Marks
-            </a>
+            {% if not assignment.semester.is_past_deadline_for_grading %}
+                <a href="{% url 'academics/instructor:assessment_management' course_code_by_section=assignment.course_by_section.course_code_by_section %}" 
+                class="flex-1 flex items-center justify-center gap-2 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-xs shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    Upload Marks
+                </a>
+            {% endif %}
         </div>
     </div>
     {% endfor %}
