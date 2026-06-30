@@ -108,17 +108,17 @@
 
                     </td>
 
-                    <td class="px-5 py-4">
+                    <td class=" py-4">
 
-                        {{ row.enrollment.student.user.username }}
+                        {{ row.enrollment.student.roll_no }}
 
                     </td>
 
-                    {% for assessment in assessments %}
+                    {% for mark in row.marks %}
 
                         <td class="text-center px-5 py-4">
 
-                            {{ row.marks}}
+                            {{ mark|default:"--" }}
 
                         </td>
 
@@ -126,25 +126,25 @@
 
                     <td class="text-center font-semibold">
 
-                        {{ row.total }}
+                        {{ row.enrollment.total_obtained_marks }}
 
                     </td>
 
                     <td class="text-center">
 
-                        {{ row.percentage }}%
+                        {{ row.enrollment.percentage|floatformat:2 }}%
 
                     </td>
 
                     <td class="text-center font-bold">
 
-                        {{ row.grade }}
+                        {{ row.enrollment.grade }}
 
                     </td>
 
                     <td class="text-center">
 
-                        {{ row.gpa }}
+                        {{ row.enrollment.gpa }}
 
                     </td>
 
