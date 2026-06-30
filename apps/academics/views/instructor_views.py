@@ -10,6 +10,7 @@ from django.contrib import messages
 from ..forms.instructor_forms import AssessmentForm, MarkEntryForm
 from django.forms import formset_factory
 
+
 @login_required
 @instructor_only
 def instructor_overview_page(request):
@@ -18,8 +19,8 @@ def instructor_overview_page(request):
 
 @login_required
 @instructor_only
-def classes_details_page(request, class_id):
-    course_by_section = get_object_or_404(CourseBySection, course_code_by_section=class_id)
+def classes_details_page(request, pk):
+    course_by_section = get_object_or_404(CourseBySection, pk=pk)
     pending_grading = None
     if course_by_section.pending_grading is not None:
         pending_grading = course_by_section.pending_grading
@@ -62,11 +63,18 @@ def mark_attendance_view(request, course_by_section_id):
 
 @login_required
 @instructor_only
-def assigned_courses_page(request):
+def assigned_courses_page_for_attendance(request):
     current_sem = Semester.latest_semester()
     assignments = CourseAssignment.objects.filter(instructor=request.user.instructor_profile,semester__in=[current_sem,Semester.previous_semester()])
-    return render(request, 'temps/academics/pages/InstructorDashboard/assigned_classes.html',{'assignments':assignments,'current_sem':current_sem})
+    return render(request, 'temps/academics/pages/InstructorDashboard/assigned_classes_attendance.html',{'assignments':assignments,'current_sem':current_sem})
 
+@login_required
+@instructor_only
+def assigned_courses_page_for_marks(request):
+    current_sem = Semester.latest_semester()
+    prev_sem = Semester.previous_semester()
+    assignments = CourseAssignment.objects.filter(instructor=request.user.instructor_profile,semester__in=[current_sem,prev_sem]).select_related('semester')
+    return render(request, 'temps/academics/pages/InstructorDashboard/assigned_classes_marks.html',{'assignments':assignments,'current_semester':current_sem,'previous_semester':prev_sem})
 
 @login_required
 @instructor_only
@@ -152,22 +160,35 @@ def mark_entry_by_assessment_page_view(request,pk):
 @login_required
 @instructor_only
 def grade_book_by_section(request,pk):
-    course_by_section = get_object_or_404(CourseBySection, pk=pk)
+    course_by_section = get_object_or_404(
+        CourseBySection.objects.prefetch_related( # used prefetch to prevent n+1 query problem!
+            'assessments__mark_entries',
+            'enrollments__student__user',
+        ), 
+        pk=pk
+    )
     assessments = course_by_section.assessments.all()
-
-    gradebook = []
     enrollments = course_by_section.enrollments.filter(status='active')
 
+    mark_lookup = {}
+    for assessment in assessments:
+        for entry in assessment.mark_entries.all():
+            mark_lookup[(entry.enrollment_id, assessment.id)] = entry.obtained_marks
+
+
+    gradebook = []
     for enrollment in enrollments:
-        row = {   
-            'enrollment':enrollment
-        }
+        marks = []
+
         for assessment in assessments:
-            row = row | {
-                f'{assessment.title}':assessment.mark_entries.filter(enrollment__student=enrollment.student)
-            }
-        row = row | {
-            'grade':enrollment.grade
-        }
-        gradebook.append(row)
+            marks.append(
+                mark_lookup.get(
+                    (enrollment.id, assessment.id)
+                )
+            )
+
+        gradebook.append({
+            "enrollment": enrollment,
+            "marks": marks,
+        })
     return render(request, 'temps/academics/pages/InstructorDashboard/grade_book.html',{'course_by_section':course_by_section,'assessments':assessments,'gradebook':gradebook})

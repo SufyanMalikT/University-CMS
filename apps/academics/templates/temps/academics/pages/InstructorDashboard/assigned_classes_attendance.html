@@ -1,68 +1,98 @@
 {% extends 'BaseInstructorDashboard.html' %}
 
+
 {% block main_section %}
-<div class="mb-10">
-    <h1 class="text-3xl font-black text-slate-900 tracking-tight">Assigned Courses</h1>
-    <p class="text-slate-500 font-medium">Spring 2026 Semester • <span class="text-indigo-600">Faculty Portal</span></p>
+<div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div>
+        <h1 class="text-3xl font-black text-slate-900 tracking-tight">Academic Records</h1>
+        <p class="text-slate-500 font-medium">{{current_semester.get_sem}} Semester • <span class="text-indigo-600 font-bold">Faculty Portal</span></p>
+    </div>
+
+    <div class="flex items-center gap-4">
+        <div class="relative hidden lg:block">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            </span>
+            <input type="text" id="courseSearch" placeholder="Search course code or name..." 
+                   class="w-64 bg-white border border-slate-200 rounded-2xl py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm">
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 p-1 shadow-sm flex items-center">
+            <span class="px-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">View Mode</span>
+            <select id="tabToggle" class="bg-slate-50 border-none rounded-xl font-bold text-sm text-slate-700 px-4 py-1.5 focus:ring-0 cursor-pointer">
+                <option value="active">Active Semester</option>
+                <option value="archive">Archive (Prev)</option>
+            </select>
+        </div>
+    </div>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-    {% for assignment in classes %}
-    <div class="group bg-white rounded-[32px] border border-slate-200 p-6 hover:shadow-xl hover:shadow-indigo-100/50 transition-all duration-300 flex flex-col justify-between">
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="courseGrid">
+
+    {% for assignment in assignments %}
+    <div class="course-card group bg-white rounded-[32px] border border-slate-200 p-6 hover:shadow-2xl hover:shadow-indigo-100/40 transition-all duration-300 flex flex-col justify-between"
+         data-tab="{% if assignment.is_from_current_semester %}active{% else %}archive{% endif %}">
         
         <div class="flex justify-between items-start mb-6">
-            <div class="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-black text-slate-500 uppercase tracking-widest">
+            <div class="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-black text-slate-500 uppercase tracking-widest group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                 {{ assignment.course_by_section.course.course_code }}
             </div>
-            
-            <!-- {% if assignment.marked_today %}
-                <span class="flex items-center gap-1.5 text-emerald-600 font-bold text-xs">
-                    <div class="w-2 h-2 rounded-full bg-emerald-500"></div> Complete
-                </span>
-            {% else %}
-                <span class="flex items-center gap-1.5 text-amber-500 font-bold text-xs">
-                    <div class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></div> Pending
-                </span>
-            {% endif %} -->
-            <span class="flex items-center gap-1.5 text-emerald-600 font-bold text-xs" >
-                Total Sessions: {{ assignment.course_by_section.sessions_current_semester }}
+            <span class="text-[10px] font-black {% if assignment.is_from_current_semester %}text-emerald-600{% else %}text-slate-400{% endif %} uppercase tracking-widest">
+                {{ assignment.semester_name }}
             </span>
         </div>
 
         <div class="mb-8">
-            <h3 class="text-xl font-black text-slate-900 leading-tight mb-2 group-hover:text-indigo-600 transition-colors">
+            <h3 class="text-xl font-black text-slate-900 leading-tight mb-2">
                 {{ assignment.course_by_section.course.name }}
             </h3>
-            <div class="flex items-center gap-2 text-slate-500 font-bold text-sm">
-                <span class="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md text-xs">{{ assignment.course_by_section.section.section_id }}</span>
+            <div class="flex items-center gap-2 text-slate-500 font-bold text-xs">
+                <span class="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md">{{ assignment.course_by_section.section.section_id }}</span>
                 <span>•</span>
-                <span>{{ assignment.course_by_section.no_of_enrolled_students }} Students</span>
+                <span>{{ assignment.course_by_section.no_of_enrolled_students }} Enrolled</span>
             </div>
         </div>
-
-        <div class="pt-6 border-t border-slate-50 flex items-center justify-between">
-            <div class="text-left">
-                <p class="text-[10px] text-slate-400 uppercase font-black tracking-tighter">Last Marked</p>
-                {% if assignment.course_by_section.last_session_created_in_days == 1 %}
-                <p class="text-xs font-bold text-slate-700">Yesterday</p>
-                {% elif assignment.course_by_section.last_session_created_in_days == 0 %}
-                <p class="text-xs font-bold text-slate-700">Today</p>
-                {% elif assignment.course_by_section.last_session_created_in_days != None %}
-                <p class="text-xs font-bold text-slate-700">{{ assignment.course_by_section.last_session_created_in_days }} days ago</p>
-                {% else %}
-                    <p class="text-xs font-bold text-slate-700">Never</p>
-                {% endif %}
-            </div>
-            
-            <a href="{% url 'academics/instructor:attendance_page_for_class' course_by_section_id=assignment.course_by_section.course_code_by_section %}" 
-               class="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-200 group-hover:w-32 transition-all duration-300 overflow-hidden relative">
-                <span class="absolute left-4 opacity-0 group-hover:opacity-100 font-bold text-sm transition-opacity whitespace-nowrap">Mark Now</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute right-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
-                </svg>
-            </a>
+        <div class="pt-6 border-t border-slate-50 flex items-center justify-between gap-2">
+            {% if assignment.is_from_current_semester %}
+                <a href="{% url 'academics/instructor:attendance_page_for_class' course_by_section_id=assignment.course_by_section.course_code_by_section %}" 
+                class="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-900 text-white rounded-2xl font-bold text-xs hover:bg-slate-800 transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    Mark Attendance
+                </a>
+            {% endif %}
         </div>
     </div>
     {% endfor %}
 </div>
+
+<script>
+    const tabToggle = document.getElementById('tabToggle');
+    const courseSearch = document.getElementById('courseSearch');
+    const cards = document.querySelectorAll('.course-card');
+
+    function filterCards() {
+        const selectedTab = tabToggle.value;
+        const searchQuery = courseSearch.value.toLowerCase();
+
+        cards.forEach(card => {
+            const cardTab = card.getAttribute('data-tab');
+            const cardText = card.innerText.toLowerCase();
+            
+            const matchesTab = (selectedTab === cardTab);
+            const matchesSearch = cardText.includes(searchQuery);
+
+            if (matchesTab && matchesSearch) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    tabToggle.addEventListener('change', filterCards);
+    courseSearch.addEventListener('input', filterCards);
+
+    // Run once on load to show active by default
+    filterCards();
+</script>
 {% endblock %}

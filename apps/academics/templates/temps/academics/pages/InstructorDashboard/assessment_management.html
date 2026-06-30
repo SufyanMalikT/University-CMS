@@ -68,7 +68,7 @@
                             <a class='bg-red-500 rounded-xs px-2 py-1 text-white tracking-tight shadow-sm transition hover:bg-red-600'
                             href="{% url 'academics/instructor:delete_assessment' pk=assessment.id %}">Delete</a> |
                         {% endif %} 
-                        {% if assessment.course_by_section.semester.is_past_deadline_for_grading %}
+                        {% if not assessment.course_by_section.semester.is_past_deadline_for_grading %}
                             <a class='text-blue-500 transition hover:text-blue-600 hover:underline'href="{% url 'academics/instructor:upload_marks_by_assessment' pk=assessment.id %}">Upload Marks</a>
                         {% endif %}
                     </td>

@@ -302,7 +302,7 @@ class Enrollment(models.Model):
         return f"{self.semester.session} {self.semester.start_date.year}"
     
     @property
-    def total_marks(self):
+    def total_obtained_marks(self):
         return self.marks.aggregate(Total=Sum('obtained_marks'))['Total'] or 0
     
     @property
@@ -311,7 +311,11 @@ class Enrollment(models.Model):
             return True
         else:
             return False
-        
+
+    @property 
+    def get_total_marks(self):
+        return self.marks.aggregate(total=Sum('assessment__total_marks'))['total'] or 0  
+    
     @property
     def percentage(self):
         data = self.marks.aggregate(
@@ -473,11 +477,10 @@ class MarkEntry(models.Model):
         super().clean()     
         if self.enrollment_id and self.enrollment.status != 'active':
             raise ValidationError("You cannot grade an inactive enrollment!")
+        
         if self.pk:
-            
-            old = MarkEntry.objects.filter(pk=self.pk).first()
-            if old and old.is_locked:
-                raise ValidationError("This mark entry is locked.")
+            if self.enrollment.semester.is_past_deadline_for_grading:
+                raise ValidationError("The deadline for grading has passed!")
             
         if (
             self.enrollment_id and self.enrollment.course_by_section
@@ -534,7 +537,7 @@ class ClassSchedule(models.Model):
             raise ValidationError("The class start time cannot be past its end time")
 
     def save(self, *args, **kwargs):
-        self.full_clean()
+        self.full_clean
         super().save(*args, **kwargs)
 
     class Meta:
@@ -603,3 +606,4 @@ class DateSheetEntry(models.Model):
         ordering = ['exam_date', 'start_time']
     def __str__(self):
         return f"{self.course_by_section.course.name} - {self.room.name} - {self.exam_date}" 
+
